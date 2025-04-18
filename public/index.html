@@ -13,8 +13,15 @@
         <div id="chat-window">
             <ul id="messages"></ul>
         </div>
+        <label for="message-input" class="hidden">Entrer votre message</label>
         <input id="message-input" type="text" placeholder="Écris un message..." maxlength="500" autofocus />
-        <button id="send-btn">Envoyer</button>
+        <button id="send-btn" aria-label="Envoyer un message textuel">Envoyer</button>
+        <button id="record-btn" aria-label="Enregistrer un message vocal">🎤</button>
+        <button id="send-audio-btn" aria-label="Envoyer un message vocal">📤</button>
+        <button id="call-btn" aria-label="Appel audio">📞</button>
+        <button id="video-call-btn" aria-label="Appel vidéo">📹</button>
+        <button id="hangup-audio-btn" class="hidden" aria-label="Raccrocher l'appel audio">🛑</button>
+        <button id="hangup-btn" class="hidden" aria-label="Raccrocher l'appel vidéo">🛑</button>
     </div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="script.js"></script>

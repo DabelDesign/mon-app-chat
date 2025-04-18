@@ -5,6 +5,10 @@
     --text-color: #333;
     --message-bg: #eef;
     --self-bg: #d5f5e3;
+    --success-color: #28a745;
+    --success-hover-color: #218838;
+    --danger-color: #dc3545;
+    --danger-hover-color: #c82333;
 }
 
 body {
@@ -62,16 +66,56 @@ body {
     border-radius: 5px;
 }
 
-#send-btn {
-    width: 25%;
-    background-color: var(--primary-color);
-    color: white;
+button {
+    margin: 5px;
+    padding: 10px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    padding: 10px;
+}
+
+#send-btn {
+    background-color: var(--primary-color);
+    color: white;
 }
 
 #send-btn:hover {
     background-color: var(--hover-color);
+}
+
+/* Icones pour les fonctionnalités (ronds et stylés) */
+#record-btn, #send-audio-btn, #call-btn, #video-call-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    text-align: center;
+    line-height: 40px;
+    border-radius: 50%;
+    background-color: var(--success-color);
+    color: white;
+}
+
+#record-btn:hover, #send-audio-btn:hover, #call-btn:hover, #video-call-btn:hover {
+    background-color: var(--success-hover-color);
+}
+
+/* Boutons pour raccrocher */
+#hangup-audio-btn, #hangup-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    text-align: center;
+    line-height: 40px;
+    border-radius: 50%;
+    background-color: var(--danger-color);
+    color: white;
+}
+
+#hangup-audio-btn:hover, #hangup-btn:hover {
+    background-color: var(--danger-hover-color);
+}
+
+/* Classe cachée */
+.hidden {
+    display: none;
 }

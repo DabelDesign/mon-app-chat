@@ -1,60 +1,105 @@
-const socket = io({
-    transports: ['websocket'],
-});
+const socket = io({ transports: ['websocket'] });
+let mediaRecorder;
+let localStream;
+let recordedAudioBlob = null;
 
-// Demande de pseudonyme et de couleur
-const user = prompt("Entrez votre pseudonyme (max. 50 caractères) :")?.substring(0, 50) || "Anonyme";
-const userColor = prompt("Choisissez une couleur CSS valide (par exemple, 'red', 'blue', '#123456') :") || "black";
-
-const sendButton = document.getElementById('send-btn');
+// Sélection des éléments du DOM
 const messageInput = document.getElementById('message-input');
-const messagesContainer = document.getElementById('messages');
+const sendButton = document.getElementById('send-btn');
+const hangupAudioButton = document.getElementById('hangup-audio-btn');
+const hangupVideoButton = document.getElementById('hangup-btn');
 
-// Fonction pour obtenir l'heure actuelle
-function getTimestamp() {
-    const now = new Date();
-    return now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-}
-
-// Fonction pour ajouter un message
-function addMessage(data, isSelf = false) {
-    const newMessage = document.createElement('li');
-    newMessage.style.color = data.color;
-    newMessage.textContent = `${data.user}: ${data.content}`;
-    const timestamp = document.createElement('span');
-    timestamp.textContent = ` (${getTimestamp()})`;
-    timestamp.style.fontSize = '0.8em';
-    timestamp.style.color = '#888';
-    newMessage.appendChild(timestamp);
-
-    if (isSelf) newMessage.classList.add('self');
-    messagesContainer.appendChild(newMessage);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-    // Notifications
-    if (!isSelf && document.hidden) {
-        document.title = 'Nouveau message !';
-        const audio = new Audio('/notification.mp3');
-        audio.play();
-    }
-}
-
-// Envoyer un message
+// Envoi des messages textuels
 sendButton.addEventListener('click', () => {
     const content = messageInput.value.trim();
-    if (content && content.length <= 500) {
-        const data = { user, color: userColor, content };
-        addMessage(data, true);
+    if (content) {
+        const data = { user: "Anonyme", color: "black", content };
         socket.emit('chat message', data);
-        messageInput.value = '';
+        messageInput.value = ''; // Réinitialisation du champ
     }
 });
 
-// Écoute des événements Socket.io
-socket.on('previous messages', (messages) => messages.forEach(msg => addMessage(msg)));
-socket.on('chat message', (data) => addMessage(data));
+// Réception des messages textuels
+socket.on('chat message', (data) => {
+    const newMessage = document.createElement('li');
+    newMessage.textContent = `${data.user}: ${data.content}`;
+    document.getElementById('messages').appendChild(newMessage);
+});
 
-// Réinitialisation du titre
-document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) document.title = 'Chat App';
+// Enregistrement des messages vocaux
+document.getElementById('record-btn').addEventListener('click', async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = (event) => {
+        recordedAudioBlob = event.data;
+        alert('Audio enregistré. Prêt à être envoyé.');
+    };
+    mediaRecorder.start();
+    setTimeout(() => mediaRecorder.stop(), 5000);
+});
+
+// Envoi des messages vocaux
+document.getElementById('send-audio-btn').addEventListener('click', () => {
+    if (recordedAudioBlob) {
+        socket.emit('voice message', recordedAudioBlob);
+        alert('Message vocal envoyé !');
+        recordedAudioBlob = null;
+    } else {
+        alert('Veuillez d\'abord enregistrer un message vocal.');
+    }
+});
+
+// Réception des messages vocaux
+socket.on('voice message', (audioBlob) => {
+    const audio = new Audio(URL.createObjectURL(audioBlob));
+    audio.controls = true;
+    document.getElementById('messages').appendChild(audio);
+});
+
+// Appels audio
+document.getElementById('call-btn').addEventListener('click', async () => {
+    localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    alert('Appel audio commencé.');
+    socket.emit('call initiated', 'audio');
+
+    // Afficher le bouton raccrocher audio
+    hangupAudioButton.classList.remove('hidden');
+});
+
+// Raccrocher l'appel audio
+hangupAudioButton.addEventListener('click', () => {
+    if (localStream) {
+        localStream.getTracks().forEach(track => {
+            if (track.kind === 'audio') track.stop();
+        });
+        alert('Appel audio terminé.');
+    }
+
+    // Cacher le bouton raccrocher audio
+    hangupAudioButton.classList.add('hidden');
+});
+
+// Appels vidéo
+document.getElementById('video-call-btn').addEventListener('click', async () => {
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    const video = document.createElement('video');
+    video.srcObject = localStream;
+    video.play();
+    document.body.appendChild(video);
+    alert('Appel vidéo commencé.');
+    socket.emit('call initiated', 'video');
+
+    // Afficher le bouton raccrocher vidéo
+    hangupVideoButton.classList.remove('hidden');
+});
+
+// Raccrocher l'appel vidéo
+hangupVideoButton.addEventListener('click', () => {
+    if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        alert('Appel vidéo terminé.');
+    }
+
+    // Cacher le bouton raccrocher vidéo
+    hangupVideoButton.classList.add('hidden');
 });
