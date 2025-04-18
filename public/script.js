@@ -1,10 +1,10 @@
 const socket = io({
-    transports: ['websocket'], // Force uniquement l'utilisation de WebSocket
+    transports: ['websocket'],
 });
 
-// Ajouter un pseudonyme et une couleur à l'utilisateur
-const user = prompt("Entrez votre pseudonyme :") || "Anonyme";
-const userColor = prompt("Choisissez une couleur (par exemple, 'red', 'blue', 'green') :") || "black";
+// Demande de pseudonyme et de couleur
+const user = prompt("Entrez votre pseudonyme (max. 50 caractères) :")?.substring(0, 50) || "Anonyme";
+const userColor = prompt("Choisissez une couleur CSS valide (par exemple, 'red', 'blue', '#123456') :") || "black";
 
 const sendButton = document.getElementById('send-btn');
 const messageInput = document.getElementById('message-input');
@@ -16,30 +16,24 @@ function getTimestamp() {
     return now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 }
 
-// Fonction pour ajouter des messages avec l'heure et la couleur
+// Fonction pour ajouter un message
 function addMessage(data, isSelf = false) {
     const newMessage = document.createElement('li');
-    newMessage.style.color = data.color; // Appliquer la couleur
+    newMessage.style.color = data.color;
+    newMessage.textContent = `${data.user}: ${data.content}`;
     const timestamp = document.createElement('span');
-    timestamp.textContent = ` (${getTimestamp()})`; // Ajout de l'heure
+    timestamp.textContent = ` (${getTimestamp()})`;
     timestamp.style.fontSize = '0.8em';
     timestamp.style.color = '#888';
-    timestamp.style.marginLeft = '10px';
-
-    newMessage.textContent = `${data.user}: ${data.content}`;
     newMessage.appendChild(timestamp);
 
-    if (isSelf) {
-        newMessage.classList.add('self');
-    }
+    if (isSelf) newMessage.classList.add('self');
     messagesContainer.appendChild(newMessage);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-    // Notifications visuelles et sonores
-    if (!isSelf) {
-        if (document.hidden) {
-            document.title = 'Nouveau message !';
-        }
+    // Notifications
+    if (!isSelf && document.hidden) {
+        document.title = 'Nouveau message !';
         const audio = new Audio('/notification.mp3');
         audio.play();
     }
@@ -48,27 +42,19 @@ function addMessage(data, isSelf = false) {
 // Envoyer un message
 sendButton.addEventListener('click', () => {
     const content = messageInput.value.trim();
-    if (content !== '') {
+    if (content && content.length <= 500) {
         const data = { user, color: userColor, content };
-        addMessage(data, true); // Ajouter le message avec les détails localement
-        socket.emit('chat message', data); // Envoyer au serveur
+        addMessage(data, true);
+        socket.emit('chat message', data);
         messageInput.value = '';
     }
 });
 
-// Réception des anciens messages
-socket.on('previous messages', (messages) => {
-    messages.forEach(msg => addMessage(msg));
-});
+// Écoute des événements Socket.io
+socket.on('previous messages', (messages) => messages.forEach(msg => addMessage(msg)));
+socket.on('chat message', (data) => addMessage(data));
 
-// Réception des nouveaux messages depuis le serveur
-socket.on('chat message', (data) => {
-    addMessage(data);
-});
-
-// Réinitialiser le titre quand l'utilisateur revient
+// Réinitialisation du titre
 document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-        document.title = 'Chat App';
-    }
+    if (!document.hidden) document.title = 'Chat App';
 });
