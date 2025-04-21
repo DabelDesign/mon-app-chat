@@ -3,26 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self';">
-    <title>Chat App</title>
+    <title>Application de Chat</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="chat-container">
-        <h1>Bienvenue sur Mon App Chat</h1>
         <div id="chat-window">
             <ul id="messages"></ul>
         </div>
-        <label for="message-input" class="hidden">Entrer votre message</label>
-        <input id="message-input" type="text" placeholder="Écris un message..." maxlength="500" autofocus />
-        <button id="send-btn" aria-label="Envoyer un message textuel">Envoyer</button>
-        <button id="record-btn" aria-label="Enregistrer un message vocal">🎤</button>
-        <button id="send-audio-btn" aria-label="Envoyer un message vocal">📤</button>
-        <button id="call-btn" aria-label="Appel audio">📞</button>
-        <button id="video-call-btn" aria-label="Appel vidéo">📹</button>
-        <button id="hangup-audio-btn" class="hidden" aria-label="Raccrocher l'appel audio">🛑</button>
-        <button id="hangup-btn" class="hidden" aria-label="Raccrocher l'appel vidéo">🛑</button>
+        <input id="message-input" type="text" placeholder="Écrivez votre message..." />
+        <button id="send-btn">Envoyer</button>
+        <button id="record">🎤 Enregistrer</button>
+        <audio id="audioPlayer" controls></audio>
+        <button id="startCall">📞 Appeler</button>
+        <button id="stopCall">❌ Terminer l'appel</button>
+        <video id="localVideo" controls muted></video>
+        <video id="remoteVideo" controls></video>
     </div>
+    
     <script src="/socket.io/socket.io.js"></script>
     <script src="script.js"></script>
 </body>

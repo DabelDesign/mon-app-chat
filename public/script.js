@@ -1,105 +1,103 @@
-const socket = io({ transports: ['websocket'] });
-let mediaRecorder;
-let localStream;
-let recordedAudioBlob = null;
+const colors = ["blue", "green", "red", "purple", "orange"];
+const userColor = colors[Math.floor(Math.random() * colors.length)];
+const username = prompt("Entrez votre pseudo :", "Anonyme");
 
-// Sélection des éléments du DOM
+const socket = io("http://localhost:3000", {
+    transports: ["websocket", "polling"],
+});
+
 const messageInput = document.getElementById('message-input');
 const sendButton = document.getElementById('send-btn');
-const hangupAudioButton = document.getElementById('hangup-audio-btn');
-const hangupVideoButton = document.getElementById('hangup-btn');
+const messages = document.getElementById('messages');
+const recordButton = document.getElementById("record");
+const localVideo = document.getElementById("localVideo");
+const remoteVideo = document.getElementById("remoteVideo");
+const stopCallButton = document.getElementById("stopCall");
 
-// Envoi des messages textuels
+// Gestion de l'envoi de messages textuels
 sendButton.addEventListener('click', () => {
-    const content = messageInput.value.trim();
-    if (content) {
-        const data = { user: "Anonyme", color: "black", content };
-        socket.emit('chat message', data);
-        messageInput.value = ''; // Réinitialisation du champ
+    const msg = { user: username, content: messageInput.value, color: userColor };
+    if (msg.content.trim() !== '') {
+        socket.emit('chat message', msg);
+        messageInput.value = '';
     }
 });
 
-// Réception des messages textuels
-socket.on('chat message', (data) => {
-    const newMessage = document.createElement('li');
-    newMessage.textContent = `${data.user}: ${data.content}`;
-    document.getElementById('messages').appendChild(newMessage);
+socket.on('chat message', (msg) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<strong style="color:${msg.color}">${msg.user}:</strong> ${msg.content}`;
+    messages.appendChild(li);
+    messages.scrollTop = messages.scrollHeight;
 });
 
-// Enregistrement des messages vocaux
-document.getElementById('record-btn').addEventListener('click', async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = (event) => {
-        recordedAudioBlob = event.data;
-        alert('Audio enregistré. Prêt à être envoyé.');
-    };
-    mediaRecorder.start();
-    setTimeout(() => mediaRecorder.stop(), 5000);
+// Gestion des appels WebRTC
+const peerConnection = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+
+navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+    .then((stream) => {
+        localVideo.srcObject = stream;
+        localVideo.pause(); // Empêcher la lecture automatique
+        stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+    })
+    .catch(error => console.error("Erreur accès caméra/micro :", error));
+
+peerConnection.ontrack = (event) => {
+    remoteVideo.srcObject = event.streams[0];
+};
+
+document.getElementById("startCall").addEventListener("click", async () => {
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+    socket.emit("offer", offer);
 });
 
-// Envoi des messages vocaux
-document.getElementById('send-audio-btn').addEventListener('click', () => {
-    if (recordedAudioBlob) {
-        socket.emit('voice message', recordedAudioBlob);
-        alert('Message vocal envoyé !');
-        recordedAudioBlob = null;
-    } else {
-        alert('Veuillez d\'abord enregistrer un message vocal.');
+document.getElementById("stopCall").addEventListener("click", () => {
+    if (localVideo.srcObject) {
+        localVideo.srcObject.getTracks().forEach(track => track.stop());
+        localVideo.srcObject = null;
     }
+    if (remoteVideo.srcObject) {
+        remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+        remoteVideo.srcObject = null;
+    }
+
+    peerConnection.close();
+    console.log("Appel terminé.");
 });
 
-// Réception des messages vocaux
-socket.on('voice message', (audioBlob) => {
-    const audio = new Audio(URL.createObjectURL(audioBlob));
-    audio.controls = true;
-    document.getElementById('messages').appendChild(audio);
-});
+// Gestion des messages vocaux avec correction
+let mediaRecorder;
+let audioChunks = [];
 
-// Appels audio
-document.getElementById('call-btn').addEventListener('click', async () => {
-    localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    alert('Appel audio commencé.');
-    socket.emit('call initiated', 'audio');
+navigator.mediaDevices.getUserMedia({ audio: true })
+    .then((stream) => {
+        mediaRecorder = new MediaRecorder(stream);
+        
+        mediaRecorder.ondataavailable = (event) => {
+            if (mediaRecorder.state === "inactive") {
+                audioChunks.push(event.data);
+                const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+                socket.emit("voice message", audioBlob);
+            }
+        };
 
-    // Afficher le bouton raccrocher audio
-    hangupAudioButton.classList.remove('hidden');
-});
-
-// Raccrocher l'appel audio
-hangupAudioButton.addEventListener('click', () => {
-    if (localStream) {
-        localStream.getTracks().forEach(track => {
-            if (track.kind === 'audio') track.stop();
+        recordButton.addEventListener("click", () => {
+            if (mediaRecorder.state === "recording") {
+                mediaRecorder.stop();
+                recordButton.textContent = "🎤 Enregistrer";
+            } else {
+                audioChunks = [];
+                mediaRecorder.start();
+                recordButton.textContent = "🛑 Stop";
+            }
         });
-        alert('Appel audio terminé.');
-    }
+    })
+    .catch(error => console.error("Erreur accès au micro :", error));
 
-    // Cacher le bouton raccrocher audio
-    hangupAudioButton.classList.add('hidden');
-});
-
-// Appels vidéo
-document.getElementById('video-call-btn').addEventListener('click', async () => {
-    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    const video = document.createElement('video');
-    video.srcObject = localStream;
-    video.play();
-    document.body.appendChild(video);
-    alert('Appel vidéo commencé.');
-    socket.emit('call initiated', 'video');
-
-    // Afficher le bouton raccrocher vidéo
-    hangupVideoButton.classList.remove('hidden');
-});
-
-// Raccrocher l'appel vidéo
-hangupVideoButton.addEventListener('click', () => {
-    if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
-        alert('Appel vidéo terminé.');
-    }
-
-    // Cacher le bouton raccrocher vidéo
-    hangupVideoButton.classList.add('hidden');
+socket.on("voice message", (audioBlob) => {
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audioElement = document.createElement("audio");
+    audioElement.src = audioUrl;
+    audioElement.controls = true;
+    document.body.appendChild(audioElement);
 });

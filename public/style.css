@@ -1,20 +1,6 @@
-:root {
-    --primary-color: #007bff;
-    --hover-color: #0056b3;
-    --background-color: #f2f2f2;
-    --text-color: #333;
-    --message-bg: #eef;
-    --self-bg: #d5f5e3;
-    --success-color: #28a745;
-    --success-hover-color: #218838;
-    --danger-color: #dc3545;
-    --danger-hover-color: #c82333;
-}
-
 body {
     font-family: Arial, sans-serif;
-    background-color: var(--background-color);
-    color: var(--text-color);
+    background-color: #f4f4f4;
     margin: 0;
     padding: 0;
     display: flex;
@@ -24,20 +10,21 @@ body {
 }
 
 #chat-container {
-    width: 450px;
-    padding: 20px;
+    width: 400px;
     background: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: center;
 }
 
 #chat-window {
     height: 300px;
     border: 1px solid #ddd;
-    border-radius: 5px;
-    overflow-y: scroll;
+    overflow-y: auto;
     margin-bottom: 10px;
     padding: 10px;
+    background-color: #f9f9f9;
 }
 
 #messages {
@@ -48,74 +35,41 @@ body {
 
 #messages li {
     margin-bottom: 10px;
-    padding: 5px 10px;
-    background: var(--message-bg);
+    padding: 10px;
     border-radius: 5px;
-}
-
-#messages li.self {
-    background: var(--self-bg);
-    text-align: right;
 }
 
 #message-input {
-    width: 70%;
+    width: calc(100% - 80px);
     padding: 10px;
-    margin-right: 5px;
     border: 1px solid #ddd;
     border-radius: 5px;
+    margin-right: 5px;
 }
 
-button {
-    margin: 5px;
+#send-btn, #record, #startCall, #stopCall {
     padding: 10px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    margin: 5px;
+}
+
+#startCall {
+    background-color: green;
+    color: white;
+}
+
+#stopCall {
+    background-color: red;
+    color: white;
 }
 
 #send-btn {
-    background-color: var(--primary-color);
+    background-color: #007bff;
     color: white;
 }
 
 #send-btn:hover {
-    background-color: var(--hover-color);
-}
-
-/* Icones pour les fonctionnalités (ronds et stylés) */
-#record-btn, #send-audio-btn, #call-btn, #video-call-btn {
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
-    text-align: center;
-    line-height: 40px;
-    border-radius: 50%;
-    background-color: var(--success-color);
-    color: white;
-}
-
-#record-btn:hover, #send-audio-btn:hover, #call-btn:hover, #video-call-btn:hover {
-    background-color: var(--success-hover-color);
-}
-
-/* Boutons pour raccrocher */
-#hangup-audio-btn, #hangup-btn {
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
-    text-align: center;
-    line-height: 40px;
-    border-radius: 50%;
-    background-color: var(--danger-color);
-    color: white;
-}
-
-#hangup-audio-btn:hover, #hangup-btn:hover {
-    background-color: var(--danger-hover-color);
-}
-
-/* Classe cachée */
-.hidden {
-    display: none;
+    background-color: #0056b3;
 }
