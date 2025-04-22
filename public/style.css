@@ -1,75 +1,18 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-
-#chat-container {
-    width: 400px;
-    background: white;
+video {
+    width: 100%;
+    height: auto;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    text-align: center;
+    background-color: black;
+    margin-top: 10px;
 }
 
-#chat-window {
-    height: 300px;
-    border: 1px solid #ddd;
-    overflow-y: auto;
-    margin-bottom: 10px;
-    padding: 10px;
-    background-color: #f9f9f9;
+button {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
 }
 
-#messages {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-#messages li {
-    margin-bottom: 10px;
-    padding: 10px;
-    border-radius: 5px;
-}
-
-#message-input {
-    width: calc(100% - 80px);
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    margin-right: 5px;
-}
-
-#send-btn, #record, #startCall, #stopCall {
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin: 5px;
-}
-
-#startCall {
-    background-color: green;
-    color: white;
-}
-
-#stopCall {
-    background-color: red;
-    color: white;
-}
-
-#send-btn {
-    background-color: #007bff;
-    color: white;
-}
-
-#send-btn:hover {
-    background-color: #0056b3;
+audio {
+    width: 100%;
+    margin-top: 10px;
 }
