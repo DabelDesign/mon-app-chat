@@ -2,8 +2,10 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const bodyParser = require('body-parser'); // Assure-toi d'inclure body-parser correctement
 
-const app = express();
+const app = express(); // Initialise app AVANT toute configuration
+
 const server = http.createServer(app);
 const io = new Server(server, {
     transports: ['websocket', 'polling'],
@@ -13,40 +15,17 @@ const io = new Server(server, {
     },
 });
 
-let chatHistory = [];
-
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Middleware pour l'encodage et la sécurité
+app.use(bodyParser.json({ type: 'application/json; charset=utf-8' }));
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    next();
+});
 
 io.on('connection', (socket) => {
     console.log('✅ Un utilisateur s\'est connecté.');
-    
-    socket.emit('chat history', chatHistory);
-
-    socket.on('chat message', (msg) => {
-        chatHistory.push(msg);
-        io.emit('chat message', msg);
-    });
-
-    socket.on('offer', (offer) => {
-        console.log("📡 Offre WebRTC reçue :", offer);
-        socket.broadcast.emit('offer', offer);
-    });
-
-    socket.on('answer', (answer) => {
-        console.log("✅ Réponse WebRTC reçue :", answer);
-        socket.broadcast.emit('answer', answer);
-    });
-
-    socket.on('candidate', (candidate) => {
-        console.log("🔍 Candidat ICE reçu :", candidate);
-        socket.broadcast.emit('candidate', candidate);
-    });
-
-    socket.on('voice message', (audioData) => {
-        console.log("🎙️ Message vocal reçu !");
-        socket.broadcast.emit('voice message', audioData);
-    });
-
     socket.on('disconnect', () => {
         console.log('❌ Un utilisateur s\'est déconnecté.');
     });

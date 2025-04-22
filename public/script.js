@@ -13,27 +13,60 @@ const recordButton = document.getElementById("record");
 const localVideo = document.getElementById("localVideo");
 const remoteVideo = document.getElementById("remoteVideo");
 const stopCallButton = document.getElementById("stopCall");
+const callDuration = document.getElementById("call-duration");
+
+sendButton.disabled = true;
+
+messageInput.addEventListener('input', () => {
+    sendButton.disabled = messageInput.value.trim() === "";
+});
+
+sendButton.addEventListener('click', () => {
+    const msg = { user: username, content: messageInput.value, color: userColor };
+    console.log("📤 Envoi du message :", msg);
+    if (msg.content.trim() !== '') {
+        socket.emit('chat message', msg);
+        messageInput.value = '';
+        sendButton.disabled = true;
+    }
+});
+
+socket.on('chat message', (msg) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<strong style="color:${msg.color}">${msg.user}:</strong> ${msg.content}`;
+    messages.appendChild(li);
+    messages.scrollTop = messages.scrollHeight;
+});
 
 let peerConnection;
+let callStartTime;
+let callTimerInterval;
 
 function createPeerConnection() {
     peerConnection = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
 
     peerConnection.ontrack = (event) => {
-        console.log("📡 Flux vidéo reçu !");
         remoteVideo.srcObject = event.streams[0];
-
-        if (remoteVideo.srcObject) {
-            console.log("✅ Vidéo distante affichée !");
-        }
     };
 
     peerConnection.onicecandidate = (event) => {
         if (event.candidate) {
             socket.emit("candidate", event.candidate);
-            console.log("🔍 Candidat ICE envoyé :", event.candidate);
         }
     };
+}
+
+function startCallTimer() {
+    callStartTime = Date.now();
+    callTimerInterval = setInterval(() => {
+        const elapsedTime = Math.floor((Date.now() - callStartTime) / 1000);
+        callDuration.textContent = `⏳ Durée de l'appel : ${elapsedTime} sec`;
+    }, 1000);
+}
+
+function stopCallTimer() {
+    clearInterval(callTimerInterval);
+    callDuration.textContent = "⏹️ Appel terminé";
 }
 
 createPeerConnection();
@@ -43,20 +76,21 @@ navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         localVideo.srcObject = stream;
         stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
     })
-    .catch(error => console.error("❌ Erreur accès caméra/micro :", error));
+    .catch(error => console.error("❌ Erreur lors de l'accès caméra/micro :", error));
 
 document.getElementById("startCall").addEventListener("click", async () => {
+    startCallTimer();
     const offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(offer);
     socket.emit("offer", offer);
-    console.log("📞 Appel lancé !");
 });
 
 document.getElementById("stopCall").addEventListener("click", () => {
+    stopCallTimer();
+
     if (peerConnection) {
         peerConnection.close();
-        console.log("❌ Appel terminé.");
-        createPeerConnection(); // Réinitialiser la connexion
+        createPeerConnection();
     }
 
     if (localVideo.srcObject) {
@@ -75,48 +109,16 @@ socket.on("offer", async (offer) => {
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(answer);
     socket.emit("answer", answer);
-    console.log("✅ Réponse WebRTC envoyée !");
 });
 
 socket.on("answer", async (answer) => {
-    if (peerConnection.signalingState !== "stable") {
-        await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-        console.log("🔁 Réponse WebRTC appliquée !");
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+});
+
+socket.on("candidate", async (candidate) => {
+    if (peerConnection.remoteDescription) {
+        await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+    } else {
+        console.warn("🚨 Remote description non définie.");
     }
-});
-
-socket.on("candidate", (candidate) => {
-    console.log("🔄 Candidat ICE reçu :", candidate);
-    peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-});
-
-// Gestion des messages vocaux
-let mediaRecorder;
-
-navigator.mediaDevices.getUserMedia({ audio: true })
-    .then((stream) => {
-        mediaRecorder = new MediaRecorder(stream);
-
-        mediaRecorder.ondataavailable = (event) => {
-            if (mediaRecorder.state === "inactive") {
-                socket.emit("voice message", event.data);
-            }
-        };
-
-        recordButton.addEventListener("click", () => {
-            if (mediaRecorder.state === "recording") {
-                mediaRecorder.stop();
-            } else {
-                mediaRecorder.start();
-            }
-        });
-    });
-
-socket.on("voice message", (audioData) => {
-    const audioBlob = new Blob([audioData], { type: "audio/webm" });
-    const audioUrl = URL.createObjectURL(audioBlob);
-    const audioElement = document.createElement("audio");
-    audioElement.src = audioUrl;
-    audioElement.controls = true;
-    document.getElementById("chat-container").appendChild(audioElement);
 });
