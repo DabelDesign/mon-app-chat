@@ -1,11 +1,14 @@
+// Couleurs pour les utilisateurs
 const colors = ["blue", "green", "red", "purple", "orange"];
 const userColor = colors[Math.floor(Math.random() * colors.length)];
 const username = prompt("Entrez votre pseudo :", "Anonyme");
 
+// Connexion au serveur via WebSocket
 const socket = io("http://localhost:3000", {
     transports: ["websocket", "polling"],
 });
 
+// Récupération des éléments DOM
 const messageInput = document.getElementById('message-input');
 const sendButton = document.getElementById('send-btn');
 const messages = document.getElementById('messages');
@@ -19,7 +22,7 @@ const callMode = document.getElementById("call-mode");
 
 sendButton.disabled = true;
 
-// Désactiver les vidéos par défaut
+// Masquer les vidéos par défaut
 localVideo.style.display = "none";
 remoteVideo.style.display = "none";
 
@@ -27,6 +30,7 @@ messageInput.addEventListener('input', () => {
     sendButton.disabled = messageInput.value.trim() === "";
 });
 
+// Envoyer des messages via le chat
 sendButton.addEventListener('click', () => {
     const msg = { user: username, content: messageInput.value, color: userColor };
     if (msg.content.trim() !== '') {
@@ -36,6 +40,7 @@ sendButton.addEventListener('click', () => {
     }
 });
 
+// Affichage des messages reçus
 socket.on('chat message', (msg) => {
     const li = document.createElement('li');
     li.innerHTML = `<strong style="color:${msg.color}">${msg.user}:</strong> ${msg.content}`;
@@ -43,10 +48,12 @@ socket.on('chat message', (msg) => {
     messages.scrollTop = messages.scrollHeight;
 });
 
+// Variables pour les appels
 let peerConnection;
 let callStartTime;
 let callTimerInterval;
 
+// Créer une connexion WebRTC
 function createPeerConnection() {
     peerConnection = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
 
@@ -61,6 +68,7 @@ function createPeerConnection() {
     };
 }
 
+// Démarrer le chronomètre de l'appel
 function startCallTimer() {
     callStartTime = Date.now();
     callTimerInterval = setInterval(() => {
@@ -69,11 +77,13 @@ function startCallTimer() {
     }, 1000);
 }
 
+// Arrêter le chronomètre de l'appel
 function stopCallTimer() {
     clearInterval(callTimerInterval);
     callDuration.textContent = "⏹️ Appel terminé";
 }
 
+// Initialisation de la connexion WebRTC
 createPeerConnection();
 
 // Gestion des appels vocaux
@@ -82,15 +92,16 @@ startVoiceCallIcon.addEventListener("click", async () => {
     localVideo.style.display = "none";
     remoteVideo.style.display = "none";
     startCallTimer();
-    navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-        .then((stream) => {
-            stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
-        })
-        .catch(error => console.error("❌ Erreur lors de l'accès au micro :", error));
-    
-    const offer = await peerConnection.createOffer();
-    await peerConnection.setLocalDescription(offer);
-    socket.emit("offer", offer);
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        socket.emit("offer", offer);
+    } catch (error) {
+        console.error("❌ Erreur lors de l'accès au micro :", error);
+    }
 });
 
 // Gestion des appels vidéos
@@ -99,23 +110,22 @@ startVideoCallIcon.addEventListener("click", async () => {
     localVideo.style.display = "block";
     remoteVideo.style.display = "block";
     startCallTimer();
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-        .then((stream) => {
-            localVideo.srcObject = stream;
-            stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
-        })
-        .catch(error => console.error("❌ Erreur lors de l'accès caméra/micro :", error));
-    
-    const offer = await peerConnection.createOffer();
-    await peerConnection.setLocalDescription(offer);
-    socket.emit("offer", offer);
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        localVideo.srcObject = stream;
+        stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        socket.emit("offer", offer);
+    } catch (error) {
+        console.error("❌ Erreur lors de l'accès caméra/micro :", error);
+    }
 });
 
 // Gestion du bouton "Terminer l'appel"
 stopCallButton.addEventListener("click", () => {
     stopCallTimer();
-
-    // Masquer les vidéos
     localVideo.style.display = "none";
     remoteVideo.style.display = "none";
 
@@ -134,7 +144,6 @@ stopCallButton.addEventListener("click", () => {
         remoteVideo.srcObject = null;
     }
 
-    // Informer le serveur que l'appel est terminé
     socket.emit("end call");
 });
 
@@ -158,8 +167,6 @@ socket.on("candidate", async (candidate) => {
 
 socket.on("end call", () => {
     stopCallTimer();
-
-    // Masquer les vidéos
     localVideo.style.display = "none";
     remoteVideo.style.display = "none";
 

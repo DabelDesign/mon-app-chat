@@ -4,6 +4,16 @@ const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+
+// Connexion à MongoDB sans options obsolètes
+mongoose.connect(process.env.DB_URI)
+.then(() => console.log('✅ Connecté à MongoDB !'))
+.catch((err) => console.error('❌ Erreur de connexion à MongoDB :', err));
+
+// Importation des modèles
+const User = require('./models/User');
+const Message = require('./models/Message');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,6 +31,47 @@ const io = new Server(server, {
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
 
+// Routes API pour les utilisateurs
+app.post('/users', async (req, res) => {
+    try {
+        const user = new User(req.body);
+        await user.save();
+        res.status(201).send(user);
+    } catch (err) {
+        res.status(400).send(err);
+    }
+});
+
+app.get('/users', async (req, res) => {
+    try {
+        const users = await User.find();
+        res.status(200).send(users);
+    } catch (err) {
+        res.status(500).send(err);
+    }
+});
+
+// Routes API pour les messages
+app.post('/messages', async (req, res) => {
+    try {
+        const message = new Message(req.body);
+        await message.save();
+        res.status(201).send(message);
+    } catch (err) {
+        res.status(400).send(err);
+    }
+});
+
+app.get('/messages', async (req, res) => {
+    try {
+        const messages = await Message.find();
+        res.status(200).send(messages);
+    } catch (err) {
+        res.status(500).send(err);
+    }
+});
+
+// Gestion des sockets pour le chat et les appels
 io.on('connection', (socket) => {
     console.log('✅ Un utilisateur s\'est connecté.');
 
