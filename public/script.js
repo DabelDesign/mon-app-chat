@@ -19,6 +19,10 @@ const callMode = document.getElementById("call-mode");
 
 sendButton.disabled = true;
 
+// Désactiver les vidéos par défaut
+localVideo.style.display = "none";
+remoteVideo.style.display = "none";
+
 messageInput.addEventListener('input', () => {
     sendButton.disabled = messageInput.value.trim() === "";
 });
@@ -75,6 +79,8 @@ createPeerConnection();
 // Gestion des appels vocaux
 startVoiceCallIcon.addEventListener("click", async () => {
     callMode.textContent = "Mode : Vocal";
+    localVideo.style.display = "none";
+    remoteVideo.style.display = "none";
     startCallTimer();
     navigator.mediaDevices.getUserMedia({ audio: true, video: false })
         .then((stream) => {
@@ -90,6 +96,8 @@ startVoiceCallIcon.addEventListener("click", async () => {
 // Gestion des appels vidéos
 startVideoCallIcon.addEventListener("click", async () => {
     callMode.textContent = "Mode : Vidéo";
+    localVideo.style.display = "block";
+    remoteVideo.style.display = "block";
     startCallTimer();
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         .then((stream) => {
@@ -106,6 +114,10 @@ startVideoCallIcon.addEventListener("click", async () => {
 // Gestion du bouton "Terminer l'appel"
 stopCallButton.addEventListener("click", () => {
     stopCallTimer();
+
+    // Masquer les vidéos
+    localVideo.style.display = "none";
+    remoteVideo.style.display = "none";
 
     if (peerConnection) {
         peerConnection.close();
@@ -146,6 +158,10 @@ socket.on("candidate", async (candidate) => {
 
 socket.on("end call", () => {
     stopCallTimer();
+
+    // Masquer les vidéos
+    localVideo.style.display = "none";
+    remoteVideo.style.display = "none";
 
     if (peerConnection) {
         peerConnection.close();

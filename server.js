@@ -24,26 +24,27 @@ app.use(bodyParser.json());
 io.on('connection', (socket) => {
     console.log('✅ Un utilisateur s\'est connecté.');
 
-    // Gestion des événements
+    // Gestion des messages
     socket.on('chat message', (msg) => {
-        io.emit('chat message', msg); // Diffuse le message à tous les clients
+        io.emit('chat message', msg);
     });
 
+    // Gestion des appels
     socket.on('offer', (offer) => {
-        socket.broadcast.emit('offer', offer); // Diffuse l'offre de connexion
+        socket.broadcast.emit('offer', offer);
     });
 
     socket.on('answer', (answer) => {
-        socket.broadcast.emit('answer', answer); // Diffuse la réponse
+        socket.broadcast.emit('answer', answer);
     });
 
     socket.on('candidate', (candidate) => {
-        socket.broadcast.emit('candidate', candidate); // Diffuse le candidat ICE
+        socket.broadcast.emit('candidate', candidate);
     });
 
     socket.on('end call', () => {
         console.log('🔚 Appel terminé par un utilisateur.');
-        socket.broadcast.emit('end call'); // Informe tous les autres utilisateurs
+        socket.broadcast.emit('end call');
     });
 
     socket.on('disconnect', () => {
