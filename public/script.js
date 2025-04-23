@@ -15,7 +15,7 @@ const username = (() => {
 })();
 
 // Connexion au serveur via WebSocket
-const socket = io("http://192.168.1.13:3000", {
+const socket = io("http://localhost:3000", {
     transports: ["websocket", "polling"],
 });
 
