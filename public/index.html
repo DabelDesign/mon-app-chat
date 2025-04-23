@@ -3,47 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat & WebRTC App</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f9;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        #video-container {
-            display: flex;
-            gap: 10px;
-        }
-        video {
-            width: 45%;
-            border: 1px solid #ccc;
-        }
-        #chat-container {
-            width: 90%;
-            max-width: 800px;
-            margin-top: 20px;
-        }
-        #messages {
-            border: 1px solid #ddd;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-    </style>
+    <title>Chat & Appels Vidéo</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <h1>Chat & Appels Vidéo</h1>
     <div id="video-container">
-        <video id="localVideo" controls muted></video>
-        <video id="remoteVideo" controls></video>
+        <video id="localVideo" controls muted aria-label="Vidéo locale"></video>
+        <video id="remoteVideo" controls aria-label="Vidéo distante"></video>
     </div>
     <p id="call-duration">⏳ Durée de l'appel : 0 sec</p>
-    <button id="startCall">📞 Appeler</button>
+    <p id="call-mode">Mode : En attente</p>
+    <!-- Icônes pour les appels -->
+    <span id="startVoiceCall" class="icon-microphone" title="🎤 Appel vocal"></span>
+    <span id="startVideoCall" class="icon-camera" title="📸 Appel vidéo"></span>
     <button id="stopCall">❌ Terminer l'appel</button>
     <div id="chat-container">
         <ul id="messages"></ul>
-        <input id="message-input" placeholder="Message">
+        <input id="message-input" placeholder="Saisissez votre message ici...">
         <button id="send-btn">Envoyer</button>
     </div>
     <script src="/socket.io.min.js"></script>

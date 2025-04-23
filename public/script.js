@@ -9,11 +9,13 @@ const socket = io("http://localhost:3000", {
 const messageInput = document.getElementById('message-input');
 const sendButton = document.getElementById('send-btn');
 const messages = document.getElementById('messages');
-const recordButton = document.getElementById("record");
 const localVideo = document.getElementById("localVideo");
 const remoteVideo = document.getElementById("remoteVideo");
 const stopCallButton = document.getElementById("stopCall");
 const callDuration = document.getElementById("call-duration");
+const startVoiceCallIcon = document.getElementById("startVoiceCall");
+const startVideoCallIcon = document.getElementById("startVideoCall");
+const callMode = document.getElementById("call-mode");
 
 sendButton.disabled = true;
 
@@ -23,7 +25,6 @@ messageInput.addEventListener('input', () => {
 
 sendButton.addEventListener('click', () => {
     const msg = { user: username, content: messageInput.value, color: userColor };
-    console.log("📤 Envoi du message :", msg);
     if (msg.content.trim() !== '') {
         socket.emit('chat message', msg);
         messageInput.value = '';
@@ -71,21 +72,39 @@ function stopCallTimer() {
 
 createPeerConnection();
 
-navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-    .then((stream) => {
-        localVideo.srcObject = stream;
-        stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
-    })
-    .catch(error => console.error("❌ Erreur lors de l'accès caméra/micro :", error));
-
-document.getElementById("startCall").addEventListener("click", async () => {
+// Gestion des appels vocaux
+startVoiceCallIcon.addEventListener("click", async () => {
+    callMode.textContent = "Mode : Vocal";
     startCallTimer();
+    navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+        .then((stream) => {
+            stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+        })
+        .catch(error => console.error("❌ Erreur lors de l'accès au micro :", error));
+    
     const offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(offer);
     socket.emit("offer", offer);
 });
 
-document.getElementById("stopCall").addEventListener("click", () => {
+// Gestion des appels vidéos
+startVideoCallIcon.addEventListener("click", async () => {
+    callMode.textContent = "Mode : Vidéo";
+    startCallTimer();
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then((stream) => {
+            localVideo.srcObject = stream;
+            stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+        })
+        .catch(error => console.error("❌ Erreur lors de l'accès caméra/micro :", error));
+    
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+    socket.emit("offer", offer);
+});
+
+// Gestion du bouton "Terminer l'appel"
+stopCallButton.addEventListener("click", () => {
     stopCallTimer();
 
     if (peerConnection) {
@@ -102,8 +121,12 @@ document.getElementById("stopCall").addEventListener("click", () => {
         remoteVideo.srcObject.getTracks().forEach(track => track.stop());
         remoteVideo.srcObject = null;
     }
+
+    // Informer le serveur que l'appel est terminé
+    socket.emit("end call");
 });
 
+// Gestion des événements reçus du serveur
 socket.on("offer", async (offer) => {
     await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
     const answer = await peerConnection.createAnswer();
@@ -118,7 +141,26 @@ socket.on("answer", async (answer) => {
 socket.on("candidate", async (candidate) => {
     if (peerConnection.remoteDescription) {
         await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-    } else {
-        console.warn("🚨 Remote description non définie.");
     }
+});
+
+socket.on("end call", () => {
+    stopCallTimer();
+
+    if (peerConnection) {
+        peerConnection.close();
+        createPeerConnection();
+    }
+
+    if (localVideo.srcObject) {
+        localVideo.srcObject.getTracks().forEach(track => track.stop());
+        localVideo.srcObject = null;
+    }
+
+    if (remoteVideo.srcObject) {
+        remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+        remoteVideo.srcObject = null;
+    }
+
+    console.log("🔚 Appel terminé par l'autre utilisateur.");
 });
