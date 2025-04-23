@@ -3,25 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Application de chat et appels vidéo en temps réel.">
     <title>Chat & Appels Vidéo</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Chat & Appels Vidéo</h1>
-    <div id="video-container">
-        <video id="localVideo" controls muted aria-label="Vidéo locale"></video>
-        <video id="remoteVideo" controls aria-label="Vidéo distante"></video>
-    </div>
-    <p id="call-duration">⏳ Durée de l'appel : 0 sec</p>
-    <p id="call-mode">Mode : En attente</p>
-    <!-- Icônes pour les appels -->
-    <span id="startVoiceCall" class="icon-microphone" title="🎤 Appel vocal"></span>
-    <span id="startVideoCall" class="icon-camera" title="📸 Appel vidéo"></span>
-    <button id="stopCall">❌ Terminer l'appel</button>
-    <div id="chat-container">
-        <ul id="messages"></ul>
-        <input id="message-input" placeholder="Saisissez votre message ici...">
-        <button id="send-btn">Envoyer</button>
+    <div id="app-container">
+        <header>
+            <h1>Chat & Appels Vidéo</h1>
+        </header>
+        <main>
+            <!-- Conteneur des vidéos -->
+            <div id="video-container">
+                <video id="localVideo" muted aria-label="Vidéo locale"></video>
+                <video id="remoteVideo" aria-label="Vidéo distante"></video>
+            </div>
+            <p id="call-duration">⏳ Durée de l'appel : 0 sec</p>
+            <p id="call-mode">Mode : En attente</p>
+            <!-- Icônes pour les appels -->
+            <div id="call-controls">
+                <span id="startVoiceCall" class="icon-microphone" title="Appel vocal">🎤</span>
+                <span id="startVideoCall" class="icon-camera" title="Appel vidéo">📸</span>
+                <button id="stopCall">❌ Terminer l'appel</button>
+            </div>
+            <!-- Conteneur du chat -->
+            <div id="chat-container">
+                <ul id="messages"></ul>
+                <div id="chat-controls">
+                    <input id="message-input" placeholder="Tapez votre message ici...">
+                    <button id="send-btn">Envoyer</button>
+                </div>
+            </div>
+        </main>
     </div>
     <script src="/socket.io.min.js"></script>
     <script src="script.js"></script>

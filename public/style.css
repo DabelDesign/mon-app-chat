@@ -7,6 +7,23 @@ body {
     align-items: center;
     margin: 0;
     padding: 20px;
+    height: 100vh;
+    justify-content: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2rem;
+    color: #333;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Conteneur principal */
+#app-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
 }
 
 /* Conteneur des vidéos */
@@ -14,6 +31,7 @@ body {
     display: flex;
     gap: 15px;
     margin-top: 20px;
+    flex-wrap: wrap; /* Vidéos passent en ligne verticale sur petits écrans */
 }
 
 video {
@@ -39,6 +57,7 @@ video:hover {
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     padding: 20px;
+    text-align: center;
 }
 
 #messages {
@@ -98,7 +117,6 @@ button {
 
 button:hover {
     background-color: #4CAF50;
-    color: white;
     transform: scale(1.1);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -133,4 +151,15 @@ input:focus {
 
 li {
     animation: fade-in 0.3s ease-in-out;
+}
+
+/* Responsive design pour les vidéos */
+@media (max-width: 600px) {
+    #video-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    video {
+        width: 90%;
+    }
 }
