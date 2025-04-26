@@ -2,11 +2,12 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Application de chat et appels vidéo en temps réel.">
     <meta name="author" content="Ton Nom">
     <title>Chat & Appels Vidéo</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body>
     <div id="app-container">
@@ -17,8 +18,8 @@
         <main>
             <!-- Conteneur des vidéos -->
             <div id="video-container">
-                <video id="localVideo" muted autoplay controls aria-label="Vidéo locale"></video>
-                <video id="remoteVideo" autoplay webkit-playsinline controls aria-label="Vidéo distante"></video>
+                <video id="localVideo" muted autoplay aria-label="Vidéo locale"></video>
+                <video id="remoteVideo" autoplay aria-label="Vidéo distante"></video>
             </div>
 
             <!-- Conteneur audio pour les appels vocaux -->
@@ -42,7 +43,11 @@
         </main>
     </div>
 
-    <script src="/socket.io.min.js" type="text/javascript"></script>
     <script src="script.js" defer></script>
+    <script>
+        // Correction Firefox pour playsinline
+        document.getElementById("localVideo").setAttribute("playsinline", "");
+        document.getElementById("remoteVideo").setAttribute("playsinline", "");
+    </script>
 </body>
 </html>
