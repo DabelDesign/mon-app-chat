@@ -6,6 +6,9 @@
     <meta name="description" content="Application de chat et appels vidéo en temps réel.">
     <meta name="author" content="Ton Nom">
     <title>Chat & Appels Vidéo</title>
+
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self';">
+    
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
@@ -22,7 +25,7 @@
                 <video id="remoteVideo" autoplay aria-label="Vidéo distante"></video>
             </div>
 
-            <!-- Conteneur audio pour les appels vocaux -->
+            <!-- Audio pour appels vocaux -->
             <audio id="audioElement" autoplay aria-label="Audio de l'appel"></audio>
             
             <!-- Contrôles des appels -->
@@ -44,10 +47,5 @@
     </div>
 
     <script src="script.js" defer></script>
-    <script>
-        // Correction Firefox pour playsinline
-        document.getElementById("localVideo").setAttribute("playsinline", "");
-        document.getElementById("remoteVideo").setAttribute("playsinline", "");
-    </script>
 </body>
 </html>
