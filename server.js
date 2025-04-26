@@ -7,7 +7,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);
 const io = new Server(server, {
-    cors: { origin: "*", methods: ["GET", "POST"] },
+    cors: {
+        origin: "https://mon-app-chat-production.up.railway.app",
+        methods: ["GET", "POST"],
+        credentials: true,
+    },
 });
 
 app.use(express.static(path.join(__dirname, "public")));
@@ -33,6 +37,11 @@ io.on("connection", (socket) => {
     });
 });
 
-server.listen(PORT, () => {
+// ✅ Gestion des erreurs du serveur
+server.on("error", (err) => {
+    console.error("❌ Erreur sur le serveur :", err);
+});
+
+server.listen(PORT, "0.0.0.0", () => {
     console.log(`🌍 Serveur démarré sur http://localhost:${PORT}`);
 });

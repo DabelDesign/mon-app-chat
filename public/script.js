@@ -1,7 +1,7 @@
 "use strict";
 
-// 📡 Connexion au serveur
-const socket = io("https://mon-app-chat.railway.app", { transports: ["websocket", "polling"], reconnection: true });
+// 📡 Connexion au serveur Socket.io
+const socket = io("https://mon-app-chat-production.up.railway.app");
 
 // ✅ Indicateur de connexion
 const connectionStatus = document.getElementById("connection-status");
