@@ -16,6 +16,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use((req, res, next) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("Cache-Control", "max-age=3600, must-revalidate");
+    res.setHeader("Content-Security-Policy", "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self';");
     next();
 });
 

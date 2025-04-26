@@ -31,11 +31,6 @@ video {
     background: black;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
-@media (min-width: 600px) {
-    video {
-        width: calc(50% - 10px);
-    }
-}
 
 /* 🎛️ Contrôles des appels */
 #call-controls {
@@ -44,7 +39,6 @@ video {
     display: flex;
     justify-content: center;
     gap: 10px;
-    flex-wrap: wrap;
 }
 
 /* 🔊 Audio des appels vocaux */
@@ -52,7 +46,7 @@ video {
     display: none;
 }
 
-/* 🟢 Styles des boutons standardisés */
+/* 🟢 Styles des boutons */
 button {
     padding: 12px 18px;
     font-size: 16px;
@@ -64,40 +58,9 @@ button {
 }
 
 /* 🎨 Couleurs des boutons */
-#startVoiceCall {
-    background-color: #4CAF50;
-    color: white;
-}
+#startVoiceCall { background-color: #4CAF50; color: white; }
+#startVideoCall { background-color: #2196F3; color: white; }
+#stopCall { background-color: #F44336; color: white; }
 
-#startVideoCall {
-    background-color: #2196F3;
-    color: white;
-}
-
-#stopCall {
-    background-color: #F44336;
-    color: white;
-}
-
-/* 🚀 Désactivation des boutons */
-button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-}
-
-/* 🟡 Indicateur d’appel actif */
-.call-active {
-    background-color: #ffcc00 !important;
-    color: black !important;
-}
-
-/* 💬 Zone de chat */
-#chat-container {
-    width: 100%;
-    max-width: 600px;
-    margin: auto;
-    padding: 15px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background: #f9f9f9;
-}
+/* Désactivation des boutons */
+button:disabled { background-color: #ccc; cursor: not-allowed; }

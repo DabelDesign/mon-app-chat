@@ -19,23 +19,19 @@
             <p id="connection-status">🔄 Connexion...</p>
         </header>
         <main>
-            <!-- Conteneur des vidéos -->
             <div id="video-container">
                 <video id="localVideo" muted autoplay aria-label="Vidéo locale"></video>
                 <video id="remoteVideo" autoplay aria-label="Vidéo distante"></video>
             </div>
 
-            <!-- Audio pour appels vocaux -->
             <audio id="audioElement" autoplay aria-label="Audio de l'appel"></audio>
             
-            <!-- Contrôles des appels -->
             <div id="call-controls">
                 <button id="startVoiceCall">🎤 Démarrer appel vocal</button>
                 <button id="startVideoCall">📸 Démarrer appel vidéo</button>
                 <button id="stopCall">❌ Terminer l'appel</button>
             </div>
 
-            <!-- Conteneur du chat -->
             <div id="chat-container">
                 <ul id="messages"></ul>
                 <div id="chat-controls">
@@ -46,6 +42,8 @@
         </main>
     </div>
 
+    <!-- Chargement correct de Socket.io -->
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client/dist/socket.io.min.js"></script>
     <script src="script.js" defer></script>
 </body>
 </html>

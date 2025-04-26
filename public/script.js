@@ -1,6 +1,6 @@
 "use strict";
 
-// 📡 Connexion au serveur (Railway-friendly)
+// 📡 Connexion au serveur
 const socket = io("https://mon-app-chat.railway.app", { transports: ["websocket", "polling"], reconnection: true });
 
 // ✅ Indicateur de connexion
