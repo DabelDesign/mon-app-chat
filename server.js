@@ -5,9 +5,11 @@ const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Création du serveur HTTP
 const server = http.createServer(app);
 
-// ✅ Configuration Socket.io avec transports et cors
+// Configuration de Socket.IO
 const io = new Server(server, {
     transports: ["websocket", "polling"],
     cors: {
@@ -20,34 +22,30 @@ const io = new Server(server, {
 // Servir les fichiers statiques
 app.use(express.static(path.join(__dirname, "public")));
 
-// ✅ Ajout des headers de sécurité
+// Ajouter des headers de sécurité
 app.use((req, res, next) => {
-    res.setHeader("X-Content-Type-Options", "nosniff"); // Empêche le MIME sniffing
+    res.setHeader("X-Content-Type-Options", "nosniff");
     next();
 });
-app.disable("x-powered-by"); // Supprime le header "x-powered-by"
+app.disable("x-powered-by");
 
-// 🎯 Gestion des connexions Socket.io
+// Gestion des connexions
 io.on("connection", (socket) => {
-    console.log(`✅ Utilisateur connecté : ${socket.id}`);
+    console.log(`Utilisateur connecté : ${socket.id}`);
 
-    // 📩 Gestion des messages texte
+    // Gérer les messages texte
     socket.on("chat message", (msg) => {
         io.emit("chat message", msg);
+        console.log(`Message reçu : ${msg}`);
     });
 
-    // ❌ Gestion des déconnexions
+    // Gestion des déconnexions
     socket.on("disconnect", () => {
-        console.log(`❌ Utilisateur déconnecté : ${socket.id}`);
+        console.log(`Utilisateur déconnecté : ${socket.id}`);
     });
 });
 
-// ✅ Gestion des erreurs serveur
-server.on("error", (err) => {
-    console.error("❌ Erreur sur le serveur :", err);
-});
-
-// 🌍 Lancement du serveur
-server.listen(PORT, "0.0.0.0", () => {
-    console.log(`🌍 Serveur démarré sur http://localhost:${PORT}`);
+// Lancer le serveur
+server.listen(PORT, () => {
+    console.log(`Serveur démarré sur http://localhost:${PORT}`);
 });

@@ -2,32 +2,34 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat & Appels Vidéo</title>
-    <link rel="stylesheet" href="style.css?v=1.0.0">
+    <!-- Lien vers le CSS -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1>Chat & Appels Vidéo</h1>
-        <p id="connection-status">🔄 Connexion...</p>
-    </header>
-    <main>
-        <div id="video-container">
-            <video id="localVideo" muted autoplay></video>
-            <video id="remoteVideo" autoplay></video>
-        </div>
-        <div id="chat-container">
-            <ul id="messages"></ul>
-            <input id="message-input" placeholder="Tapez votre message ici..." />
-            <button id="send-btn">Envoyer</button>
-        </div>
-        <div id="controls">
-            <button id="startVoiceCall">🎤 Démarrer appel vocal</button>
-            <button id="startVideoCall">📸 Démarrer appel vidéo</button>
-            <button id="stopCall">❌ Terminer l'appel</button>
-        </div>
-    </main>
+    <h1>Chat & Appels Vidéo</h1>
+    
+    <!-- Conteneur des vidéos -->
+    <div id="video-container"></div>
+
+    <!-- Contrôles des appels -->
+    <div id="call-controls">
+        <button id="startVoiceCall">Démarrer appel vocal</button>
+        <button id="startVideoCall">Démarrer appel vidéo</button>
+        <button id="stopCall">Terminer l'appel</button>
+    </div>
+
+    <!-- Section pour les messages -->
+    <div>
+        <input type="text" id="messageInput" placeholder="Tapez votre message ici...">
+        <button id="sendMessage">Envoyer</button>
+
+    </div>
+
+    <!-- Inclusion de Socket.IO -->
     <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
-    <script src="script.js?v=1.0.0" defer></script>
+    <!-- Script personnalisé -->
+    <script src="script.js"></script>
 </body>
 </html>

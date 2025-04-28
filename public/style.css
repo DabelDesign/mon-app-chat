@@ -1,4 +1,4 @@
-/* 📱 Styles généraux pour appareils mobiles */
+/* Général */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -9,7 +9,7 @@ body {
     justify-content: center;
 }
 
-/* 🎥 Conteneur des vidéos */
+/* Conteneur des vidéos */
 #video-container {
     display: flex;
     flex-wrap: wrap;
@@ -24,14 +24,14 @@ video {
     background-color: black;
 }
 
-/* 🎛️ Contrôles des appels */
+/* Contrôles des appels */
 #call-controls {
     margin-top: 20px;
     display: flex;
     gap: 10px;
 }
 
-/* 🟢 Styles des boutons */
+/* Boutons */
 button {
     padding: 10px 15px;
     font-size: 16px;
