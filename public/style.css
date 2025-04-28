@@ -1,66 +1,45 @@
-/* 📌 Indicateur de connexion */
-#connection-status {
-    font-size: 16px;
-    font-weight: bold;
-    padding: 5px 10px;
-    color: white;
-    background-color: gray;
-    border-radius: 5px;
-    text-align: center;
-    display: inline-block;
-    margin: 10px auto;
+/* 📱 Styles généraux pour appareils mobiles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 /* 🎥 Conteneur des vidéos */
 #video-container {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
     flex-wrap: wrap;
-    padding: 10px;
-}
-
-/* 📹 Styles des vidéos */
-video {
-    width: 100%;
-    max-width: 400px;
-    height: auto;
-    object-fit: cover;
-    border-radius: 8px;
-    background: black;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* 🎛️ Contrôles des appels */
-#call-controls {
-    text-align: center;
-    margin: 20px 0;
-    display: flex;
     justify-content: center;
     gap: 10px;
 }
 
-/* 🔊 Audio des appels vocaux */
-#audioElement {
-    display: none;
+video {
+    width: 100%;
+    max-width: 300px;
+    border-radius: 8px;
+    background-color: black;
+}
+
+/* 🎛️ Contrôles des appels */
+#call-controls {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
 }
 
 /* 🟢 Styles des boutons */
 button {
-    padding: 12px 18px;
+    padding: 10px 15px;
     font-size: 16px;
-    font-weight: bold;
+    border-radius: 5px;
     border: none;
     cursor: pointer;
-    border-radius: 5px;
-    transition: all 0.3s ease-in-out;
 }
 
-/* 🎨 Couleurs des boutons */
 #startVoiceCall { background-color: #4CAF50; color: white; }
 #startVideoCall { background-color: #2196F3; color: white; }
 #stopCall { background-color: #F44336; color: white; }
-
-/* Désactivation des boutons */
-button:disabled { background-color: #ccc; cursor: not-allowed; }

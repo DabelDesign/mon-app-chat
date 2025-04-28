@@ -6,7 +6,7 @@
     <meta name="description" content="Application de chat et appels vidéo en temps réel.">
     <title>Chat & Appels Vidéo</title>
 
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://mon-app-chat-production.up.railway.app;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' wss://mon-app-chat-production.up.railway.app https://mon-app-chat-production.up.railway.app;">
     
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
@@ -19,12 +19,10 @@
         </header>
         <main>
             <div id="video-container">
-                <video id="localVideo" muted autoplay aria-label="Vidéo locale"></video>
-                <video id="remoteVideo" autoplay aria-label="Vidéo distante"></video>
+                <video id="localVideo" muted autoplay></video>
+                <video id="remoteVideo" autoplay></video>
             </div>
 
-            <audio id="audioElement" autoplay aria-label="Audio de l'appel"></audio>
-            
             <div id="call-controls">
                 <button id="startVoiceCall">🎤 Démarrer appel vocal</button>
                 <button id="startVideoCall">📸 Démarrer appel vidéo</button>
@@ -33,15 +31,12 @@
 
             <div id="chat-container">
                 <ul id="messages"></ul>
-                <div id="chat-controls">
-                    <input id="message-input" placeholder="Tapez votre message ici..." aria-label="Entrée du message">
-                    <button id="send-btn">Envoyer</button>
-                </div>
+                <input id="message-input" placeholder="Tapez votre message ici..." />
+                <button id="send-btn">Envoyer</button>
             </div>
         </main>
     </div>
 
-    <!-- Chargement correct de Socket.io -->
     <script src="/socket.io/socket.io.js" defer></script>
     <script src="script.js" defer></script>
 </body>
