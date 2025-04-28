@@ -20,7 +20,7 @@ const io = new Server(server, {
 // Servir les fichiers statiques
 app.use(express.static(path.join(__dirname, "public")));
 
-// Ajout des headers de sécurité CSP
+// ✅ Ajout des headers de sécurité CSP
 app.use((req, res, next) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("Cache-Control", "max-age=3600, must-revalidate");
@@ -35,21 +35,30 @@ app.use((req, res, next) => {
 io.on("connection", (socket) => {
     console.log(`✅ Utilisateur connecté : ${socket.id}`);
 
+    // 📩 Gestion des messages texte
     socket.on("chat message", (msg) => {
         io.emit("chat message", msg);
     });
 
+    // ❌ Gestion des déconnexions
     socket.on("disconnect", () => {
         console.log(`❌ Utilisateur déconnecté : ${socket.id}`);
     });
+
+    // 🔍 Écouteur ICE Candidate Error (WebRTC)
+    // Ajoutez ceci dans un test où `peerConnection` est défini côté serveur
+    const peerConnection = new RTCPeerConnection();
+    peerConnection.addEventListener("icecandidateerror", (event) => {
+        console.error("❌ Erreur ICE Candidate :", event.errorText);
+    });
 });
 
-// Gestion des erreurs serveur
+// ✅ Gestion des erreurs serveur
 server.on("error", (err) => {
     console.error("❌ Erreur sur le serveur :", err);
 });
 
-// Lancement du serveur
+// 🌍 Lancement du serveur
 server.listen(PORT, "0.0.0.0", () => {
     console.log(`🌍 Serveur démarré sur http://localhost:${PORT}`);
 });
