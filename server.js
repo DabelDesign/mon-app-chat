@@ -6,7 +6,10 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);
+
+// ✅ Configuration Socket.io avec transports et cors
 const io = new Server(server, {
+    transports: ["websocket", "polling"],
     cors: {
         origin: "https://mon-app-chat-production.up.railway.app",
         methods: ["GET", "POST"],
@@ -28,7 +31,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// Gestion des connexions Socket.io
+// 🎯 Gestion des connexions Socket.io
 io.on("connection", (socket) => {
     console.log(`✅ Utilisateur connecté : ${socket.id}`);
 
