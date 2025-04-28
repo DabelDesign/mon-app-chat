@@ -20,7 +20,10 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use((req, res, next) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("Cache-Control", "max-age=3600, must-revalidate");
-    res.setHeader("Content-Security-Policy", "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self';");
+    res.setHeader(
+        "Content-Security-Policy",
+        "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://mon-app-chat-production.up.railway.app;"
+    );
     next();
 });
 
@@ -45,4 +48,3 @@ server.on("error", (err) => {
 server.listen(PORT, "0.0.0.0", () => {
     console.log(`🌍 Serveur démarré sur http://localhost:${PORT}`);
 });
-// Trigger redeploy
