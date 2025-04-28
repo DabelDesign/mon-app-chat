@@ -15,7 +15,7 @@ if (typeof io !== "undefined") {
         connectionStatus.textContent = "🔴 Déconnecté";
     });
 
-    // 💬 Gestion du chat (logs ajoutés)
+    // 💬 Gestion du chat
     document.getElementById("send-btn").addEventListener("click", () => {
         const messageInput = document.getElementById("message-input");
         const message = messageInput.value.trim();
