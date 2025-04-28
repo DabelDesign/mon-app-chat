@@ -20,16 +20,12 @@ const io = new Server(server, {
 // Servir les fichiers statiques
 app.use(express.static(path.join(__dirname, "public")));
 
-// ✅ Ajout des headers de sécurité CSP
+// ✅ Ajout des headers de sécurité
 app.use((req, res, next) => {
-    res.setHeader("X-Content-Type-Options", "nosniff");
-    res.setHeader("Cache-Control", "max-age=3600, must-revalidate");
-    res.setHeader(
-        "Content-Security-Policy",
-        "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' wss://mon-app-chat-production.up.railway.app https://mon-app-chat-production.up.railway.app;"
-    );
+    res.setHeader("X-Content-Type-Options", "nosniff"); // Empêche le MIME sniffing
     next();
 });
+app.disable("x-powered-by"); // Supprime le header "x-powered-by"
 
 // 🎯 Gestion des connexions Socket.io
 io.on("connection", (socket) => {
@@ -43,13 +39,6 @@ io.on("connection", (socket) => {
     // ❌ Gestion des déconnexions
     socket.on("disconnect", () => {
         console.log(`❌ Utilisateur déconnecté : ${socket.id}`);
-    });
-
-    // 🔍 Écouteur ICE Candidate Error (WebRTC)
-    // Ajoutez ceci dans un test où `peerConnection` est défini côté serveur
-    const peerConnection = new RTCPeerConnection();
-    peerConnection.addEventListener("icecandidateerror", (event) => {
-        console.error("❌ Erreur ICE Candidate :", event.errorText);
     });
 });
 
