@@ -3,41 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Application de chat et appels vidéo en temps réel.">
     <title>Chat & Appels Vidéo</title>
-
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' wss://mon-app-chat-production.up.railway.app https://mon-app-chat-production.up.railway.app;">
-    
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body>
-    <div id="app-container">
-        <header>
-            <h1>Chat & Appels Vidéo</h1>
-            <p id="connection-status">🔄 Connexion...</p>
-        </header>
-        <main>
-            <div id="video-container">
-                <video id="localVideo" muted autoplay></video>
-                <video id="remoteVideo" autoplay></video>
-            </div>
-
-            <div id="call-controls">
-                <button id="startVoiceCall">🎤 Démarrer appel vocal</button>
-                <button id="startVideoCall">📸 Démarrer appel vidéo</button>
-                <button id="stopCall">❌ Terminer l'appel</button>
-            </div>
-
-            <div id="chat-container">
-                <ul id="messages"></ul>
-                <input id="message-input" placeholder="Tapez votre message ici..." />
-                <button id="send-btn">Envoyer</button>
-            </div>
-        </main>
-    </div>
-
-    <script src="/socket.io/socket.io.js" defer></script>
+    <header>
+        <h1>Chat & Appels Vidéo</h1>
+        <p id="connection-status">🔄 Connexion...</p>
+    </header>
+    <main>
+        <div id="video-container">
+            <video id="localVideo" muted autoplay></video>
+            <video id="remoteVideo" autoplay></video>
+        </div>
+        <div id="chat-container">
+            <ul id="messages"></ul>
+            <input id="message-input" placeholder="Tapez votre message ici..." />
+            <button id="send-btn">Envoyer</button>
+        </div>
+        <div id="controls">
+            <button id="startVoiceCall">🎤 Démarrer appel vocal</button>
+            <button id="startVideoCall">📸 Démarrer appel vidéo</button>
+            <button id="stopCall">❌ Terminer l'appel</button>
+        </div>
+    </main>
+    <script src="/socket.io/socket.io.js"></script>
     <script src="script.js" defer></script>
 </body>
 </html>

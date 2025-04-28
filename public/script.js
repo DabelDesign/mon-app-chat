@@ -1,46 +1,45 @@
 "use strict";
 
-const configuration = {
-    iceServers: [
-        { urls: "stun:stun.l.google.com:19302" }, // Serveur STUN
-    ],
-    iceTransportPolicy: "relay", // Utilisation des relais si nécessaire
-    bundlePolicy: "max-bundle", // Optimisation des flux
-};
+// 📡 Connexion Socket.io (avec vérification de disponibilité)
+if (typeof io !== "undefined") {
+    const socket = io("https://mon-app-chat-production.up.railway.app");
 
-let callStarted = false;
+    // ✅ Indicateur de connexion
+    const connectionStatus = document.getElementById("connection-status");
+    socket.on("connect", () => {
+        console.log("✅ Connecté au serveur");
+        connectionStatus.textContent = "🟢 Connecté";
+    });
+    socket.on("disconnect", () => {
+        console.warn("❌ Déconnecté du serveur");
+        connectionStatus.textContent = "🔴 Déconnecté";
+    });
 
-// 📡 Connexion Socket.io
-const socket = io("https://mon-app-chat-production.up.railway.app");
+    // 💬 Gestion du chat (logs ajoutés)
+    document.getElementById("send-btn").addEventListener("click", () => {
+        const messageInput = document.getElementById("message-input");
+        const message = messageInput.value.trim();
+        if (message) {
+            console.log(`📩 Message envoyé : ${message}`);
+            socket.emit("chat message", message);
+            messageInput.value = "";
+        }
+    });
 
-const connectionStatus = document.getElementById("connection-status");
-socket.on("connect", () => {
-    console.log("✅ Connecté au serveur");
-    connectionStatus.textContent = "🟢 Connecté";
-});
-socket.on("disconnect", () => {
-    console.warn("❌ Déconnecté du serveur");
-    connectionStatus.textContent = "🔴 Déconnecté";
-});
-
-// 💬 Gestion du chat
-document.getElementById("send-btn").addEventListener("click", () => {
-    const messageInput = document.getElementById("message-input");
-    const message = messageInput.value.trim();
-    if (message) {
-        socket.emit("chat message", message);
-        messageInput.value = "";
-    }
-});
-
-socket.on("chat message", (msg) => {
-    const messageList = document.getElementById("messages");
-    const newMessage = document.createElement("li");
-    newMessage.textContent = msg;
-    messageList.appendChild(newMessage);
-});
+    socket.on("chat message", (msg) => {
+        console.log(`📨 Message reçu : ${msg}`);
+        const messageList = document.getElementById("messages");
+        const newMessage = document.createElement("li");
+        newMessage.textContent = msg;
+        messageList.appendChild(newMessage);
+    });
+} else {
+    console.error("Socket.io non chargé !");
+}
 
 // 🎥 Démarrer un appel vidéo
+let callStarted = false;
+
 document.getElementById("startVideoCall").addEventListener("click", () => {
     if (!callStarted) {
         callStarted = true;
@@ -90,10 +89,4 @@ document.getElementById("stopCall").addEventListener("click", () => {
 
     callStarted = false;
     console.log("❌ Appel terminé !");
-});
-
-// 🛠️ Gestion des erreurs ICE Candidate
-const peerConnection = new RTCPeerConnection(configuration);
-peerConnection.addEventListener("icecandidateerror", (event) => {
-    console.error("❌ Erreur ICE Candidate :", event.errorText);
 });
