@@ -1,51 +1,45 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const path = require("path");
+require('dotenv').config();
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Création du serveur HTTP
 const server = http.createServer(app);
+const io = new Server(server);
 
-// Configuration de Socket.IO
-const io = new Server(server, {
-    transports: ["websocket", "polling"],
-    cors: {
-        origin: "https://mon-app-chat-production.up.railway.app",
-        methods: ["GET", "POST"],
-        credentials: true,
-    },
-});
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Servir les fichiers statiques
-app.use(express.static(path.join(__dirname, "public")));
+io.on('connection', (socket) => {
+    console.log('Utilisateur connecté :', socket.id);
 
-// Ajouter des headers de sécurité
-app.use((req, res, next) => {
-    res.setHeader("X-Content-Type-Options", "nosniff");
-    next();
-});
-app.disable("x-powered-by");
-
-// Gestion des connexions
-io.on("connection", (socket) => {
-    console.log(`Utilisateur connecté : ${socket.id}`);
-
-    // Gérer les messages texte
-    socket.on("chat message", (msg) => {
-        io.emit("chat message", msg);
-        console.log(`Message reçu : ${msg}`);
+    socket.on('startCall', () => {
+        socket.broadcast.emit('startCall');
     });
 
-    // Gestion des déconnexions
-    socket.on("disconnect", () => {
-        console.log(`Utilisateur déconnecté : ${socket.id}`);
+    socket.on('offer', (offer) => {
+        socket.broadcast.emit('offer', offer);
+    });
+
+    socket.on('answer', (answer) => {
+        socket.broadcast.emit('answer', answer);
+    });
+
+    socket.on('iceCandidate', (candidate) => {
+        socket.broadcast.emit('iceCandidate', candidate);
+    });
+
+    socket.on('chatMessage', (message) => {
+        io.emit('chatMessage', message);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('Utilisateur déconnecté :', socket.id);
     });
 });
 
-// Lancer le serveur
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Serveur démarré sur http://localhost:${PORT}`);
 });
+

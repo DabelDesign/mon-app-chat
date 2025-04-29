@@ -1,44 +1,85 @@
-// Initialiser Socket.IO
-const socket = io('https://mon-app-chat-production.up.railway.app');
+const socket = io('https://mon-app-chat-production.up.railway.app/');
 
-// Gérer les appels
-document.getElementById('startVoiceCall').addEventListener('click', () => {
-    socket.emit('start vocal call');
-    console.log('Appel vocal démarré');
+let localStream;
+let remoteStream;
+let peerConnection;
+
+const config = {
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+};
+
+// Gestion des appels audio/vidéo
+document.getElementById('startVideoCall').addEventListener('click', async () => {
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    document.getElementById('localVideo').srcObject = localStream;
+
+    socket.emit('startCall', true);
 });
 
-document.getElementById('startVideoCall').addEventListener('click', () => {
-    socket.emit('start video call');
-    console.log('Appel vidéo démarré');
+socket.on('startCall', async () => {
+    peerConnection = new RTCPeerConnection(config);
+
+    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+    peerConnection.ontrack = (event) => {
+        remoteStream = event.streams[0];
+        document.getElementById('remoteVideo').srcObject = remoteStream;
+    };
+
+    peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+            socket.emit('iceCandidate', event.candidate);
+        }
+    };
+
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+    socket.emit('offer', offer);
 });
 
+socket.on('offer', async (offer) => {
+    peerConnection = new RTCPeerConnection(config);
+
+    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+    peerConnection.ontrack = (event) => {
+        remoteStream = event.streams[0];
+        document.getElementById('remoteVideo').srcObject = remoteStream;
+    };
+
+    peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+            socket.emit('iceCandidate', event.candidate);
+        }
+    };
+
+    await peerConnection.setRemoteDescription(offer);
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+    socket.emit('answer', answer);
+});
+
+socket.on('answer', async (answer) => {
+    await peerConnection.setRemoteDescription(answer);
+});
+
+socket.on('iceCandidate', async (candidate) => {
+    await peerConnection.addIceCandidate(candidate);
+});
+
+// Terminer l'appel
 document.getElementById('stopCall').addEventListener('click', () => {
-    socket.emit('end call');
-    console.log('Appel terminé');
+    peerConnection.close();
+    socket.emit('endCall');
+    window.location.reload();
 });
 
-// Gérer les messages
-const messageInput = document.getElementById("messageInput");
-const sendButton = document.getElementById("sendMessage");
-
-// Activer/désactiver le bouton en fonction du contenu du champ
-messageInput.addEventListener("input", () => {
-    sendButton.disabled = messageInput.value.trim() === ""; // Désactive si vide
+// Gestion des messages texte
+document.getElementById('sendMessage').addEventListener('click', () => {
+    const message = document.getElementById('messageInput').value;
+    socket.emit('chatMessage', message);
 });
 
-// Gestionnaire d'envoi
-sendButton.addEventListener("click", () => {
-    const message = messageInput.value.trim();
-    if (message !== "") {
-        socket.emit("chat message", message); // Émet le message via Socket.IO
-        console.log("Message envoyé :", message);
-        messageInput.value = ""; // Réinitialise le champ
-        sendButton.disabled = true; // Désactive le bouton après envoi
-    }
-});
-
-
-// Réception des messages
-socket.on('chat message', (msg) => {
-    console.log('Nouveau message reçu :', msg);
+socket.on('chatMessage', (message) => {
+    console.log('Message reçu :', message);
 });
