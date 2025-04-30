@@ -17,26 +17,25 @@
         <div class="message-controls">
             <input type="text" id="message-input" placeholder="Tapez votre message...">
             <label for="file-input">
-                <span>📎</span> <!-- Icône épingle pour joindre un fichier -->
+                <span>📎</span>
             </label>
             <input type="file" id="file-input" hidden>
             <button id="send-button">Envoyer</button>
         </div>
 
         <div class="call-controls">
-            <button id="voice-call">📞</button> <!-- Icône téléphone pour appel vocal -->
+            <button id="voice-call">📗</button> <!-- Téléphone vert pour appel vocal -->
             <button id="video-call">📹</button> <!-- Icône caméra pour appel vidéo -->
-            <button id="end-call" hidden>🔴</button> <!-- Icône téléphone rouge caché -->
+            <button id="end-call" hidden>🔴</button> <!-- Téléphone rouge caché -->
         </div>
 
         <video id="local-video" autoplay muted></video>
         <video id="remote-video" autoplay></video>
     </div>
 
-    <!-- Importation correcte des scripts -->
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        const socket = io(); // Déclaration unique de `socket`
+        const socket = io();
     </script>
     <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
     <script src="script.js"></script>

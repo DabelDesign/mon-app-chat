@@ -25,12 +25,12 @@ io.on("connection", (socket) => {
         io.emit("message", msg);
     });
 
-    // Gestion de l’appel vocal et vidéo
+    // Gestion des appels vocaux et vidéo
     socket.on("start-call", (data) => {
         socket.broadcast.emit("incoming-call", data);
     });
 
-    // Gestion de la fin des appels
+    // Fin des appels
     socket.on("end-call", () => {
         socket.broadcast.emit("call-ended");
     });
@@ -43,6 +43,7 @@ io.on("connection", (socket) => {
     });
 });
 
-server.listen(3000, () => {
-    console.log("✅ Serveur démarré sur http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, "0.0.0.0", () => {
+    console.log(`✅ Serveur démarré sur http://localhost:${PORT}`);
 });
