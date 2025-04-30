@@ -1,45 +1,48 @@
-require('dotenv').config();
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const path = require('path');
+const express = require("express");
+const http = require("http");
+const socketIo = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = socketIo(server);
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static("public"));
 
-io.on('connection', (socket) => {
-    console.log('Utilisateur connecté :', socket.id);
+// Stocker les identifiants PeerJS des utilisateurs connectés
+const peerConnections = {};
 
-    socket.on('startCall', () => {
-        socket.broadcast.emit('startCall');
+io.on("connection", (socket) => {
+    console.log("🟢 Un utilisateur s'est connecté");
+
+    // Gestion des identifiants PeerJS
+    socket.on("peer-id", (id) => {
+        peerConnections[socket.id] = id;
+        socket.broadcast.emit("peer-connected", id);
     });
 
-    socket.on('offer', (offer) => {
-        socket.broadcast.emit('offer', offer);
+    // Gestion des messages
+    socket.on("message", (msg) => {
+        io.emit("message", msg);
     });
 
-    socket.on('answer', (answer) => {
-        socket.broadcast.emit('answer', answer);
+    // Gestion de l’appel vocal et vidéo
+    socket.on("start-call", (data) => {
+        socket.broadcast.emit("incoming-call", data);
     });
 
-    socket.on('iceCandidate', (candidate) => {
-        socket.broadcast.emit('iceCandidate', candidate);
+    // Gestion de la fin des appels
+    socket.on("end-call", () => {
+        socket.broadcast.emit("call-ended");
     });
 
-    socket.on('chatMessage', (message) => {
-        io.emit('chatMessage', message);
-    });
-
-    socket.on('disconnect', () => {
-        console.log('Utilisateur déconnecté :', socket.id);
+    // Déconnexion de l’utilisateur
+    socket.on("disconnect", () => {
+        console.log("🔴 Un utilisateur s'est déconnecté");
+        delete peerConnections[socket.id];
+        socket.broadcast.emit("peer-disconnected", socket.id);
     });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`Serveur démarré sur http://localhost:${PORT}`);
+server.listen(3000, () => {
+    console.log("✅ Serveur démarré sur http://localhost:3000");
 });
-
