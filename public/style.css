@@ -1,15 +1,50 @@
-.call-controls button {
-    font-size: 22px;
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.chat-container {
+    width: 80%;
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    background: white;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+}
+
+header h1 {
+    margin: 0;
     padding: 10px;
-    border-radius: 50%;
-}
-
-#voice-call {
-    background-color: green;
+    background: #007bff;
     color: white;
 }
 
-#end-call {
-    background-color: red;
+.message-controls, .call-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px;
+}
+
+button {
+    background-color: #007bff;
+    border: none;
     color: white;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+video {
+    width: 100%;
+    max-width: 300px;
+    margin-top: 10px;
+    border: 2px solid #007bff;
 }

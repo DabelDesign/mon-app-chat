@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon App Chat</title>
-    <link rel="stylesheet" href="style.css?v=1.0">
-    <link rel="icon" href="favicon.ico">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="icon" href="/favicon.ico">
 </head>
 <body>
     <div class="chat-container">
         <header>
             <h1>Mon Chat</h1>
         </header>
-        
+
         <!-- Zone de discussion -->
         <div class="chat-box" id="chat-box"></div>
-        
+
         <!-- Contrôles de messages -->
         <div class="message-controls">
             <input type="text" id="message-input" placeholder="Tapez votre message...">
@@ -26,22 +26,25 @@
             <button id="send-button">Envoyer</button>
         </div>
 
-        <!-- Contrôles d'appel vidéo -->
+        <!-- Contrôles d'appel et d'enregistrement -->
         <div class="call-controls">
-            <button id="video-call">📹</button> <!-- Icône caméra pour appel vidéo -->
-            <button id="end-call" hidden>🔴</button> <!-- Téléphone rouge caché -->
+            <button id="video-call">📹 Appel Vidéo</button>
+            <button id="voice-call">📞 Appel Vocal</button>
+            <button id="record-button">🎙️ Message Vocal</button>
+            <button id="end-call" hidden>🔴 Terminer Appel</button>
         </div>
 
         <!-- Vidéos pour appel en direct -->
-        <video id="local-video" autoplay muted></video>
-        <video id="remote-video" autoplay></video>
+        <div class="video-container">
+            <video id="local-video" autoplay muted></video>
+            <video id="remote-video" autoplay></video>
+        </div>
     </div>
 
     <!-- Scripts externes -->
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="script.js?v=1.0"></script>
+    <script src="/socket.io.min.js"></script>
     <script src="/peer.js"></script>
-    <script src="webrtc.js"></script>
+    <script src="/script.js"></script>
+    <script src="/webrtc.js"></script>
 </body>
 </html>
