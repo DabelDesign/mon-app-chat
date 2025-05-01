@@ -7,7 +7,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static(path.join(__dirname, "public"))); // Serveur des fichiers statiques
+app.use(express.static(path.join(__dirname, "public"))); // Servir les fichiers statiques
 
 io.on("connection", (socket) => {
     console.log("🟢 Un utilisateur connecté :", socket.id);
