@@ -1,3 +1,5 @@
+import io from "socket.io-client";
+const socket = io("https://mon-app-chat-production.up.railway.app/");
 document.addEventListener("DOMContentLoaded", () => {
     const localVideo = document.getElementById("local-video");
     const remoteVideo = document.getElementById("remote-video");

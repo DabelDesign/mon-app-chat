@@ -1,4 +1,4 @@
-import Peer from "peerjs";
+import Peer from "./peerjs.js"; // ✅ Assure-toi que le fichier PeerJS est bien situé dans ton projet
 import io from "socket.io-client";
 
 // 🔹 Initialisation de Socket.IO
