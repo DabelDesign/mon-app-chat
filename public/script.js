@@ -1,5 +1,5 @@
-import Peer from "./peerjs.js"; // ✅ Assure-toi que le fichier PeerJS est bien situé dans ton projet
-import io from "socket.io-client";
+import Peer from "https://unpkg.com/peerjs@1.3.1"; // ✅ Import PeerJS via CDN
+import io from "https://cdn.jsdelivr.net/npm/socket.io-client@4.3.2/dist/socket.io.min.js"; // ✅ Import Socket.IO via CDN
 
 // 🔹 Initialisation de Socket.IO
 const socket = io("https://mon-app-chat-production.up.railway.app/");
@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error("❌ Aucun Peer distant trouvé !");
             } else {
                 startVideoCall(remotePeerId);
-                endCallBtn.hidden = false; // ✅ Affichage du bouton "Terminer Appel"
+                endCallBtn.hidden = false;
             }
         });
 
@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error("❌ Aucun Peer distant trouvé !");
             } else {
                 startVoiceCall(remotePeerId);
-                endCallBtn.hidden = false; // ✅ Affichage du bouton "Terminer Appel"
+                endCallBtn.hidden = false;
             }
         });
 
@@ -84,5 +84,5 @@ function terminateCall() {
         document.getElementById("remote-video").srcObject = null;
         socket.emit("end-call");
     }
-    document.getElementById("end-call").hidden = true; // ✅ Cache le bouton après la fin de l'appel
+    document.getElementById("end-call").hidden = true;
 }
