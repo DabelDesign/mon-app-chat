@@ -1,12 +1,16 @@
 const socket = io("https://mon-app-chat-production.up.railway.app/");
+
 document.addEventListener("DOMContentLoaded", () => {
     const remoteVideo = document.getElementById("remote-video");
     const localVideo = document.getElementById("local-video");
     const endCallBtn = document.getElementById("end-call");
     const recordButton = document.getElementById("record-button");
+    const sendButton = document.getElementById("send-button");
+    const messageInput = document.getElementById("message-input");
+    const chatBox = document.getElementById("chat-box");
 
-    if (!remoteVideo || !localVideo || !endCallBtn || !recordButton) {
-        console.error("❌ Les éléments vidéo ou audio ne sont pas chargés !");
+    if (!remoteVideo || !localVideo || !endCallBtn || !recordButton || !sendButton || !messageInput || !chatBox) {
+        console.error("❌ Certains éléments ne sont pas chargés !");
         return;
     }
 
@@ -66,9 +70,26 @@ document.addEventListener("DOMContentLoaded", () => {
             }, 5000);
         });
     });
+
+    // 🔹 Gestion des messages texte
+    sendButton.addEventListener("click", () => {
+        const message = messageInput.value.trim();
+        if (message) {
+            socket.emit("message", message);
+            messageInput.value = ""; // ✅ Vide le champ après envoi
+        }
+    });
+
+    socket.on("message", (message) => {
+        const messageElement = document.createElement("div");
+        messageElement.textContent = message;
+        messageElement.classList.add("message");
+
+        chatBox.appendChild(messageElement); // ✅ Ajoute le message à la boîte de discussion
+    });
 });
 
-// 🔹 Fonctions manquantes corrigées
+// 🔹 Fonctions corrigées
 function startVideoCall(remoteId) {
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         .then((stream) => {
@@ -76,7 +97,7 @@ function startVideoCall(remoteId) {
             const call = peer.call(remoteId, stream);
             call.on("stream", (remoteStream) => {
                 document.getElementById("remote-video").srcObject = remoteStream;
-                document.getElementById("end-call").style.display = "block"; // ✅ Afficher le bouton "Terminer Appel"
+                document.getElementById("end-call").style.display = "block"; // ✅ Afficher "Terminer Appel"
             });
         })
         .catch((err) => console.error("❌ Erreur d'accès à la caméra/micro :", err));
@@ -90,7 +111,7 @@ function startVoiceCall(remoteId) {
                 const audio = new Audio();
                 audio.srcObject = remoteStream;
                 audio.play();
-                document.getElementById("end-call").style.display = "block"; // ✅ Afficher le bouton "Terminer Appel"
+                document.getElementById("end-call").style.display = "block"; // ✅ Afficher "Terminer Appel"
             });
         })
         .catch((err) => console.error("❌ Erreur d'accès au micro :", err));
