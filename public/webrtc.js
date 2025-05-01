@@ -1,7 +1,3 @@
-import io from "https://cdn.jsdelivr.net/npm/socket.io-client@4.3.2/dist/socket.io.min.js"; // ✅ Import Socket.IO via CDN
-
-const socket = io("https://mon-app-chat-production.up.railway.app/");
-
 document.addEventListener("DOMContentLoaded", () => {
     const remoteVideo = document.getElementById("remote-video");
     const localVideo = document.getElementById("local-video");

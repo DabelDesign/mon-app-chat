@@ -1,20 +1,14 @@
-import Peer from "https://unpkg.com/peerjs@1.3.1"; // ✅ Import PeerJS via CDN
-import io from "https://cdn.jsdelivr.net/npm/socket.io-client@4.3.2/dist/socket.io.min.js"; // ✅ Import Socket.IO via CDN
-
-// 🔹 Initialisation de Socket.IO
-const socket = io("https://mon-app-chat-production.up.railway.app/");
-socket.on("connect", () => console.log("✅ Connecté à Socket.IO"));
-socket.on("connect_error", (err) => console.error("❌ Erreur de connexion à Socket.IO :", err));
-
 document.addEventListener("DOMContentLoaded", () => {
     const remoteVideo = document.getElementById("remote-video");
     const localVideo = document.getElementById("local-video");
     const endCallBtn = document.getElementById("end-call");
+    const recordButton = document.getElementById("record-button");
 
-    if (!remoteVideo || !localVideo || !endCallBtn) {
-        console.error("❌ Les éléments vidéo ne sont pas encore chargés !");
+    if (!remoteVideo || !localVideo || !endCallBtn || !recordButton) {
+        console.error("❌ Les éléments vidéo ou audio ne sont pas chargés !");
     } else {
         const peer = new Peer();
+        const socket = io("https://mon-app-chat-production.up.railway.app/");
         let remotePeerId = null;
 
         peer.on("open", (id) => {
@@ -32,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error("❌ Aucun Peer distant trouvé !");
             } else {
                 startVideoCall(remotePeerId);
-                endCallBtn.hidden = false;
+                endCallBtn.hidden = false; // ✅ Afficher le bouton "Terminer Appel"
             }
         });
 
@@ -41,48 +35,36 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error("❌ Aucun Peer distant trouvé !");
             } else {
                 startVoiceCall(remotePeerId);
-                endCallBtn.hidden = false;
+                endCallBtn.hidden = false; // ✅ Afficher le bouton "Terminer Appel"
             }
         });
 
         endCallBtn.addEventListener("click", () => {
             terminateCall();
         });
+
+        // 🔹 Enregistrement des messages vocaux
+        let mediaRecorder;
+        recordButton.addEventListener("click", () => {
+            navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.start();
+
+                mediaRecorder.ondataavailable = (event) => {
+                    const audioFile = new Blob([event.data], { type: "audio/mp3" });
+                    const formData = new FormData();
+                    formData.append("file", audioFile);
+
+                    fetch("/upload", { method: "POST", body: formData })
+                        .then((res) => res.json())
+                        .then((data) => socket.emit("message", { type: "audio", fileUrl: data.fileUrl }))
+                        .catch((err) => console.error("❌ Erreur d'enregistrement vocal :", err));
+                };
+
+                setTimeout(() => {
+                    mediaRecorder.stop();
+                }, 5000);
+            });
+        });
     }
 });
-
-function startVideoCall(remoteId) {
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-        .then((stream) => {
-            document.getElementById("local-video").srcObject = stream;
-            const call = peer.call(remoteId, stream);
-            call.on("stream", (remoteStream) => {
-                document.getElementById("remote-video").srcObject = remoteStream;
-            });
-        })
-        .catch((err) => console.error("❌ Erreur d'accès à la caméra/micro :", err));
-}
-
-function startVoiceCall(remoteId) {
-    navigator.mediaDevices.getUserMedia({ audio: true })
-        .then((stream) => {
-            const call = peer.call(remoteId, stream);
-            call.on("stream", (remoteStream) => {
-                const audio = new Audio();
-                audio.srcObject = remoteStream;
-                audio.play();
-            });
-        })
-        .catch((err) => console.error("❌ Erreur d'accès au micro :", err));
-}
-
-function terminateCall() {
-    const localStream = document.getElementById("local-video").srcObject;
-    if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
-        document.getElementById("local-video").srcObject = null;
-        document.getElementById("remote-video").srcObject = null;
-        socket.emit("end-call");
-    }
-    document.getElementById("end-call").hidden = true;
-}
