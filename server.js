@@ -1,69 +1,54 @@
 const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
+const path = require("path");
 const multer = require("multer");
-const { PeerServer } = require("peer");
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-// Servir le dossier public
-app.use(express.static("public", {
-    setHeaders: (res) => {
-        res.setHeader("Cache-Control", "public, max-age=86400");
+// 📌 Définition du dossier public
+app.use("/peer.js", express.static(path.join(__dirname, "public", "peer.js")));
+app.use("/webrtc.js", express.static(path.join(__dirname, "public", "webrtc.js")));
+
+app.use(express.static(path.join(__dirname, "public")));
+
+// 📌 Configuration du stockage des fichiers audio
+const storage = multer.diskStorage({
+    destination: "uploads/",
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + "-" + file.originalname);
     }
-}));
+});
+const upload = multer({ storage });
 
-// Configuration de Multer pour uploader les fichiers
-const upload = multer({ dest: "uploads/" });
-
+// 📌 Route pour l’upload de fichiers audio
 app.post("/upload", upload.single("file"), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: "Aucun fichier envoyé" });
+    }
     res.json({ fileUrl: `/uploads/${req.file.filename}` });
 });
 
-// Initialisation du serveur PeerJS
-const peerServer = PeerServer({ port: 9000, path: "/peerjs" });
-app.use("/peerjs", peerServer);
-
-// Stocker les identifiants PeerJS des utilisateurs connectés
-const peerConnections = {};
-
-// Gestion des connexions Socket.IO
+// 📌 Gestion de Socket.IO
 io.on("connection", (socket) => {
-    console.log("🟢 Un utilisateur s'est connecté");
+    console.log("🟢 Nouvel utilisateur connecté :", socket.id);
 
-    // Gestion des identifiants PeerJS
-    socket.on("peer-id", (id) => {
-        peerConnections[socket.id] = id;
-        socket.broadcast.emit("peer-connected", id);
+    socket.on("message", (data) => {
+        io.emit("message", data); // Diffusion du message à tous
     });
 
-    // Gestion des messages
-    socket.on("message", (msg) => {
-        io.emit("message", msg);
+    socket.on("peer-id", (peerId) => {
+        console.log("🔗 Peer connecté :", peerId);
+        socket.broadcast.emit("peer-connected", peerId);
     });
 
-    // Gestion des appels vocaux et vidéo
-    socket.on("start-call", (data) => {
-        socket.broadcast.emit("incoming-call", data);
-    });
-
-    // Fin des appels
-    socket.on("end-call", () => {
-        socket.broadcast.emit("call-ended");
-    });
-
-    // Déconnexion de l’utilisateur
     socket.on("disconnect", () => {
-        console.log("🔴 Un utilisateur s'est déconnecté");
-        delete peerConnections[socket.id];
-        socket.broadcast.emit("peer-disconnected", socket.id);
+        console.log("❌ Utilisateur déconnecté :", socket.id);
     });
 });
 
-// Démarrage du serveur sur un port libre
+// 📌 Lancement du serveur
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, "0.0.0.0", () => {
-    console.log(`✅ Serveur démarré sur http://localhost:${PORT}`);
-});
+server.listen(PORT, () => console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`));
