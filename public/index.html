@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon App Chat</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=1.0">
+    <link rel="icon" href="favicon.ico">
 </head>
 <body>
     <div class="chat-container">
@@ -12,8 +13,10 @@
             <h1>Mon Chat</h1>
         </header>
         
+        <!-- Zone de discussion -->
         <div class="chat-box" id="chat-box"></div>
         
+        <!-- Contrôles de messages -->
         <div class="message-controls">
             <input type="text" id="message-input" placeholder="Tapez votre message...">
             <label for="file-input">
@@ -23,23 +26,22 @@
             <button id="send-button">Envoyer</button>
         </div>
 
+        <!-- Contrôles d'appel vidéo -->
         <div class="call-controls">
-            <button id="voice-call">📗</button> <!-- Téléphone vert pour appel vocal -->
             <button id="video-call">📹</button> <!-- Icône caméra pour appel vidéo -->
             <button id="end-call" hidden>🔴</button> <!-- Téléphone rouge caché -->
         </div>
 
+        <!-- Vidéos pour appel en direct -->
         <video id="local-video" autoplay muted></video>
         <video id="remote-video" autoplay></video>
     </div>
 
+    <!-- Scripts externes -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io();
-    </script>
-    <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
-    <script src="script.js"></script>
-    <script src="peer.js"></script>
+    <script src="script.js?v=1.0"></script>
+    <script src="/peer.js"></script>
     <script src="webrtc.js"></script>
 </body>
 </html>
