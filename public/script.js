@@ -8,8 +8,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const sendButton = document.getElementById("send-button");
     const messageInput = document.getElementById("message-input");
     const chatBox = document.getElementById("chat-box");
+    const recipientInput = document.getElementById("recipient-id"); // ✅ Ajout du champ pour l'ID du destinataire
 
-    if (!remoteVideo || !localVideo || !endCallBtn || !recordButton || !sendButton || !messageInput || !chatBox) {
+    if (!remoteVideo || !localVideo || !endCallBtn || !recordButton || !sendButton || !messageInput || !chatBox || !recipientInput) {
         console.error("❌ Certains éléments ne sont pas chargés !");
         return;
     }
@@ -27,19 +28,41 @@ document.addEventListener("DOMContentLoaded", () => {
         remotePeerId = id;
     });
 
+    // 🔹 Messages privés
+    sendButton.addEventListener("click", () => {
+        const message = messageInput.value.trim();
+        const recipientId = recipientInput.value.trim(); // ✅ Récupère l'ID du destinataire
+
+        if (message && recipientId) {
+            socket.emit("private-message", { to: recipientId, message });
+            messageInput.value = ""; // ✅ Vide le champ après envoi
+        }
+    });
+
+    socket.on("private-message", ({ message }) => {
+        const messageElement = document.createElement("div");
+        messageElement.textContent = message;
+        messageElement.classList.add("message");
+
+        chatBox.appendChild(messageElement); // ✅ Ajoute le message privé à la boîte de discussion
+    });
+
+    // 🔹 Appels vidéo et vocaux privés
     document.getElementById("video-call").addEventListener("click", () => {
-        if (!remotePeerId) {
-            console.error("❌ Aucun Peer distant trouvé !");
+        const recipientId = recipientInput.value.trim();
+        if (!recipientId) {
+            console.error("❌ Aucun utilisateur spécifié !");
         } else {
-            startVideoCall(remotePeerId);
+            startPrivateVideoCall(recipientId);
         }
     });
 
     document.getElementById("voice-call").addEventListener("click", () => {
-        if (!remotePeerId) {
-            console.error("❌ Aucun Peer distant trouvé !");
+        const recipientId = recipientInput.value.trim();
+        if (!recipientId) {
+            console.error("❌ Aucun utilisateur spécifié !");
         } else {
-            startVoiceCall(remotePeerId);
+            startPrivateVoiceCall(recipientId);
         }
     });
 
@@ -70,27 +93,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }, 5000);
         });
     });
-
-    // 🔹 Gestion des messages texte
-    sendButton.addEventListener("click", () => {
-        const message = messageInput.value.trim();
-        if (message) {
-            socket.emit("message", message);
-            messageInput.value = ""; // ✅ Vide le champ après envoi
-        }
-    });
-
-    socket.on("message", (message) => {
-        const messageElement = document.createElement("div");
-        messageElement.textContent = message;
-        messageElement.classList.add("message");
-
-        chatBox.appendChild(messageElement); // ✅ Ajoute le message à la boîte de discussion
-    });
 });
 
-// 🔹 Fonctions corrigées
-function startVideoCall(remoteId) {
+// 🔹 Fonctions corrigées et améliorées
+function startPrivateVideoCall(remoteId) {
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         .then((stream) => {
             document.getElementById("local-video").srcObject = stream;
@@ -103,7 +109,7 @@ function startVideoCall(remoteId) {
         .catch((err) => console.error("❌ Erreur d'accès à la caméra/micro :", err));
 }
 
-function startVoiceCall(remoteId) {
+function startPrivateVoiceCall(remoteId) {
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then((stream) => {
             const call = peer.call(remoteId, stream);
