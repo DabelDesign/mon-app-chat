@@ -8,7 +8,7 @@ const io = socketIO(server);
 
 const users = {}; // 🔹 Stocke les pseudos et leurs ID socket
 
-app.use(express.static("public", { extensions: ['js'] })); // 📂 Sert les fichiers statiques (HTML, CSS, JS)
+app.use(express.static("public")); // 📂 Sert les fichiers statiques (HTML, CSS, JS)
 
 io.on("connection", (socket) => {
     console.log(`🔗 Utilisateur connecté : ${socket.id}`);
