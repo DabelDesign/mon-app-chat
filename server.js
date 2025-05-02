@@ -6,26 +6,27 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
-const users = {}; // 🔹 Stocke les utilisateurs connectés
+const users = {}; // 🔹 Stocke les pseudos et IDs des utilisateurs
 
 app.use(express.static("public")); // 📂 Sert les fichiers statiques (HTML, CSS, JS)
 
 io.on("connection", (socket) => {
     console.log(`🔗 Utilisateur connecté : ${socket.id}`);
-    users[socket.id] = socket.id; // 🔹 Assigne un ID unique à chaque utilisateur
 
-    // Envoyer la liste des utilisateurs connectés
-    io.emit("user-list", Object.values(users));
+    socket.on("set-username", (username) => {
+        users[socket.id] = username; // 🔹 Associe le pseudo à l’ID
+        io.emit("user-list", Object.values(users)); // 🔹 Met à jour la liste des pseudos
+    });
 
     socket.on("disconnect", () => {
         console.log(`❌ Utilisateur déconnecté : ${socket.id}`);
-        delete users[socket.id]; // 🔹 Supprimer l'utilisateur déconnecté
-        io.emit("user-list", Object.values(users)); // 🔹 Mettre à jour la liste des utilisateurs
+        delete users[socket.id]; // 🔹 Supprime l’utilisateur lorsqu’il quitte
+        io.emit("user-list", Object.values(users));
     });
 
     // 🔹 Envoi des messages privés
     socket.on("private-message", ({ to, message }) => {
-        io.to(to).emit("message", { from: socket.id, message });
+        io.to(to).emit("message", { from: users[socket.id], message });
     });
 
     // 🔹 Appels vidéo/vocaux privés
