@@ -5,6 +5,12 @@ const socketIO = require("socket.io");
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
+const { PeerServer } = require("peer");
+const peerServer = PeerServer({ port: 9000, path: "/peerjs" });
+
+peerServer.on("connection", (client) => {
+    console.log(`🟢 Peer connecté : ${client.getId()}`);
+});
 
 const users = {}; // 🔹 Stocke les pseudos et leurs ID socket
 
@@ -38,7 +44,9 @@ io.on("connection", (socket) => {
         if (recipientSocket) {
             io.to(recipientSocket).emit("private-message", { from: users[socket.id], message });
         }
+        console.log(`📩 Message privé envoyé à ${to}: ${message}`);
     });
+    
     socket.on("private-message", ({ to, message }) => {
         const recipientSocket = Object.keys(users).find(key => users[key] === to);
         if (recipientSocket) {
