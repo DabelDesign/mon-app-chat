@@ -6,7 +6,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
-const users = {}; // 🔹 Stocke les pseudos et IDs des utilisateurs
+const users = {}; // 🔹 Stocke les pseudos et leurs ID socket
 
 app.use(express.static("public")); // 📂 Sert les fichiers statiques (HTML, CSS, JS)
 
@@ -15,13 +15,13 @@ io.on("connection", (socket) => {
 
     socket.on("set-username", (username) => {
         users[socket.id] = username;
-        io.emit("user-list", users);
+        io.emit("user-list", Object.values(users));
     });
 
     socket.on("disconnect", () => {
         console.log(`❌ Utilisateur déconnecté : ${socket.id}`);
         delete users[socket.id];
-        io.emit("user-list", users);
+        io.emit("user-list", Object.values(users));
     });
 
     socket.on("private-message", ({ to, message }) => {
