@@ -12,17 +12,21 @@
             <h1>Mon Chat</h1>
         </header>
 
+        <!-- Liste des utilisateurs en ligne -->
+        <div class="user-list">
+            <label for="user-list">Utilisateur à contacter :</label>
+            <select id="user-list"></select> <!-- ✅ Liste des utilisateurs -->
+        </div>
+
         <!-- Zone de discussion -->
         <div class="chat-box" id="chat-box"></div>
 
         <!-- Contrôles de messages -->
         <div class="message-controls">
-            <input type="text" id="recipient-id" placeholder="ID du destinataire"> <!-- ✅ Ajout du champ destinataire -->
             <input type="text" id="message-input" placeholder="Tapez votre message...">
             <button id="send-button">Envoyer</button>
             <button id="record-button">🎙️ Enregistrer Message Vocal</button>
         </div>
-        
 
         <!-- Contrôles d'appel -->
         <div class="call-controls">
@@ -42,7 +46,6 @@
     <script src="https://unpkg.com/peerjs@1.3.1"></script>
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.3.2/dist/socket.io.min.js"></script>
 
-    <script src="/script.js" type="module"></script>
-    <script src="/webrtc.js" type="module"></script>
+    <script src="/script.js" defer></script>
 </body>
 </html>
