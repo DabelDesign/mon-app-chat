@@ -39,7 +39,10 @@ io.on("connection", (socket) => {
             io.to(recipientSocket).emit("private-message", { from: users[socket.id], message });
         }
     });
-
+    socket.on("private-message", ({ to, message }) => {
+        console.log(`📩 Message privé envoyé à ${to}: ${message}`);
+    });
+    
     socket.on("start-private-call", ({ to, peerId }) => {
         const recipientSocket = Object.keys(users).find(key => users[key] === to);
         if (recipientSocket) {
