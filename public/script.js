@@ -87,14 +87,19 @@ socket.on("private-message", ({ from, message }) => {
 // 🔹 Gestion des appels vidéo et vocaux
 document.getElementById("video-call").addEventListener("click", () => {
     const recipient = document.getElementById("user-list").value;
-    if (!recipient) {
+
+    if (!recipient || recipient.trim() === "") {
+        alert("❌ Sélectionne un utilisateur avant de lancer l’appel !");
         console.error("❌ Aucun utilisateur sélectionné pour l’appel !");
         return;
     }
 
-    console.log(`📞 Tentative d'appel vidéo vers : ${recipient}`); // 🔥 LOG POUR DEBUG
+    console.log(`📞 Tentative d'appel vidéo vers : ${recipient}`);
     startPrivateVideoCall(recipient);
 });
+
+console.log(`📞 Tentative d'appel vidéo vers : ${recipient}`); // 🔥 LOG POUR DEBUG
+startPrivateVideoCall(recipient);
 
 function startPrivateVideoCall(remoteId) {
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
