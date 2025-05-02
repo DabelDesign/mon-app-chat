@@ -1,5 +1,5 @@
-import Peer from "./node_modules/peerjs/dist/peerjs.min.js";
-import io from "./node_modules/socket.io-client/dist/socket.io.js";
+import Peer from "/peerjs/peerjs.min.js";
+import io from "/socket.io-client/socket.io.js";
 
 const socket = io("https://mon-app-chat-production.up.railway.app/");
 
@@ -12,13 +12,6 @@ const peer = new Peer();
 peer.on("open", (id) => {
     console.log("🟢 Connexion PeerJS établie, ID :", id);
     socket.emit("peer-id", id);
-});
-
-document.getElementById("set-username").addEventListener("click", () => {
-    const username = document.getElementById("username-input").value.trim();
-    if (username) {
-        socket.emit("set-username", username);
-    }
 });
 
 // 🔹 Envoi et réception des messages

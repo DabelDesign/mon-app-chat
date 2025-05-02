@@ -6,9 +6,21 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
+// Servir les modules PeerJS et Socket.IO
+app.use("/peerjs", express.static(__dirname + "/node_modules/peerjs/dist"));
+app.use("/socket.io-client", express.static(__dirname + "/node_modules/socket.io-client/dist"));
+
 const users = {}; // 🔹 Stocke les pseudos et leurs ID socket
 
 app.use(express.static("public")); // 📂 Sert les fichiers statiques (HTML, CSS, JS)
+
+// 🔹 Sécurité et cache
+app.use((req, res, next) => {
+    res.setHeader("Cache-Control", "public, max-age=31536000");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.removeHeader("X-Powered-By");
+    next();
+});
 
 io.on("connection", (socket) => {
     console.log(`🔗 Utilisateur connecté : ${socket.id}`);
