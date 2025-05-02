@@ -4,7 +4,12 @@ socket.on("connect", () => {
     console.log("✅ Connecté à Socket.IO");
 });
 
-const peer = new Peer();
+const peer = new Peer({
+    config: {
+        iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+    }
+});
+
 
 peer.on("open", (id) => {
     console.log(`🟢 Connexion PeerJS établie, ID : ${id}`);
