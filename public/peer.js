@@ -27,7 +27,9 @@ peer.on("open", (id) => {
     console.log("🟢 Connexion PeerJS établie, ID :", id);
     socket.emit("peer-id", id);
 });
-
+socket.on("peer-id", (id) => {
+    console.log(`🔗 PeerJS ID reçu : ${id}`);
+});
 let remotePeerId = null;
 socket.on("peer-connected", (id) => {
     console.log("🔗 Peer distant connecté :", id);

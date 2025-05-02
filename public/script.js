@@ -63,6 +63,9 @@ socket.on("private-message", ({ from, message }) => {
 });
 
 // 🔹 Gestion des appels vidéo et vocaux
+peer.on("call", (call) => {
+    console.log("📞 Appel entrant détecté !");
+});
 document.getElementById("video-call").addEventListener("click", () => {
     const recipient = document.getElementById("user-list").value;
 
@@ -86,7 +89,7 @@ function startPrivateVideoCall(remoteId) {
         .then((stream) => {
             console.log("🎥 Caméra et micro détectés !");
             document.getElementById("local-video").srcObject = stream;
-            
+            console.log(`📞 Envoi de l'appel PeerJS vers : ${remoteId}`);
             const call = peer.call(remoteId, stream);
             
             call.on("stream", (remoteStream) => {
@@ -104,3 +107,32 @@ function startPrivateVideoCall(remoteId) {
 peer.on("call", (call) => {
     console.log("📞 Appel entrant détecté !");
 });
+document.getElementById("voice-call").addEventListener("click", () => {
+    const recipient = document.getElementById("user-list").value;
+    
+    if (!recipient || recipient.trim() === "") {
+        alert("❌ Sélectionne un utilisateur avant de passer un appel vocal !");
+        console.error("❌ Aucun utilisateur sélectionné !");
+        return;
+    }
+
+    console.log(`📞 Tentative d'appel vocal vers : ${recipient}`);
+    startPrivateVoiceCall(recipient);
+});
+
+function startPrivateVoiceCall(remoteId) {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then((stream) => {
+            console.log("🎙️ Micro détecté !");
+            const call = peer.call(remoteId, stream);
+            
+            call.on("stream", (remoteStream) => {
+                console.log("🎧 Audio reçu !");
+            });
+
+            call.on("error", (err) => {
+                console.error("❌ Erreur PeerJS lors de l'appel vocal :", err);
+            });
+        })
+        .catch((err) => console.error("❌ Erreur d’accès au micro :", err));
+}
