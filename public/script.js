@@ -8,9 +8,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const sendButton = document.getElementById("send-button");
     const messageInput = document.getElementById("message-input");
     const chatBox = document.getElementById("chat-box");
-    const recipientInput = document.getElementById("recipient-id"); // ✅ Ajout du champ pour l'ID du destinataire
+    const userList = document.getElementById("user-list"); // ✅ Liste des utilisateurs
 
-    if (!remoteVideo || !localVideo || !endCallBtn || !recordButton || !sendButton || !messageInput || !chatBox || !recipientInput) {
+    if (!remoteVideo || !localVideo || !endCallBtn || !recordButton || !sendButton || !messageInput || !chatBox || !userList) {
         console.error("❌ Certains éléments ne sont pas chargés !");
         return;
     }
@@ -23,45 +23,47 @@ document.addEventListener("DOMContentLoaded", () => {
         socket.emit("peer-id", id);
     });
 
-    socket.on("peer-connected", (id) => {
-        console.log("🔗 Peer distant connecté :", id);
-        remotePeerId = id;
+    // 🔹 Mise à jour de la liste des utilisateurs connectés
+    socket.on("user-list", (users) => {
+        userList.innerHTML = "";
+        users.forEach((userId) => {
+            const option = document.createElement("option");
+            option.value = userId;
+            option.textContent = `Utilisateur ${userId}`;
+            userList.appendChild(option);
+        });
     });
 
-    // 🔹 Messages privés
+    // 🔹 Envoi des messages privés
     sendButton.addEventListener("click", () => {
+        const recipientId = userList.value;
         const message = messageInput.value.trim();
-        const recipientId = recipientInput.value.trim(); // ✅ Récupère l'ID du destinataire
-
+        
         if (message && recipientId) {
             socket.emit("private-message", { to: recipientId, message });
             messageInput.value = ""; // ✅ Vide le champ après envoi
         }
     });
 
-    socket.on("private-message", ({ message }) => {
+    socket.on("private-message", ({ from, message }) => {
         const messageElement = document.createElement("div");
-        messageElement.textContent = message;
+        messageElement.textContent = `De ${from}: ${message}`;
         messageElement.classList.add("message");
 
         chatBox.appendChild(messageElement); // ✅ Ajoute le message privé à la boîte de discussion
     });
 
-    // 🔹 Appels vidéo et vocaux privés
+    // 🔹 Appels vidéo/vocaux privés
     document.getElementById("video-call").addEventListener("click", () => {
-        const recipientId = recipientInput.value.trim();
-        if (!recipientId) {
-            console.error("❌ Aucun utilisateur spécifié !");
-        } else {
+        const recipientId = userList.value;
+        if (recipientId) {
             startPrivateVideoCall(recipientId);
         }
     });
 
     document.getElementById("voice-call").addEventListener("click", () => {
-        const recipientId = recipientInput.value.trim();
-        if (!recipientId) {
-            console.error("❌ Aucun utilisateur spécifié !");
-        } else {
+        const recipientId = userList.value;
+        if (recipientId) {
             startPrivateVoiceCall(recipientId);
         }
     });
@@ -69,33 +71,9 @@ document.addEventListener("DOMContentLoaded", () => {
     endCallBtn.addEventListener("click", () => {
         terminateCall();
     });
-
-    // 🔹 Enregistrement des messages vocaux
-    let mediaRecorder;
-    recordButton.addEventListener("click", () => {
-        navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.start();
-
-            mediaRecorder.ondataavailable = (event) => {
-                const audioFile = new Blob([event.data], { type: "audio/mp3" });
-                const formData = new FormData();
-                formData.append("file", audioFile);
-
-                fetch("/upload", { method: "POST", body: formData })
-                    .then((res) => res.json())
-                    .then((data) => socket.emit("message", { type: "audio", fileUrl: data.fileUrl }))
-                    .catch((err) => console.error("❌ Erreur d'enregistrement vocal :", err));
-            };
-
-            setTimeout(() => {
-                mediaRecorder.stop();
-            }, 5000);
-        });
-    });
 });
 
-// 🔹 Fonctions corrigées et améliorées
+// 🔹 Fonctions d'appel privé
 function startPrivateVideoCall(remoteId) {
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         .then((stream) => {
@@ -103,7 +81,7 @@ function startPrivateVideoCall(remoteId) {
             const call = peer.call(remoteId, stream);
             call.on("stream", (remoteStream) => {
                 document.getElementById("remote-video").srcObject = remoteStream;
-                document.getElementById("end-call").style.display = "block"; // ✅ Afficher "Terminer Appel"
+                document.getElementById("end-call").style.display = "block";
             });
         })
         .catch((err) => console.error("❌ Erreur d'accès à la caméra/micro :", err));
@@ -117,7 +95,7 @@ function startPrivateVoiceCall(remoteId) {
                 const audio = new Audio();
                 audio.srcObject = remoteStream;
                 audio.play();
-                document.getElementById("end-call").style.display = "block"; // ✅ Afficher "Terminer Appel"
+                document.getElementById("end-call").style.display = "block";
             });
         })
         .catch((err) => console.error("❌ Erreur d'accès au micro :", err));
@@ -131,5 +109,5 @@ function terminateCall() {
         document.getElementById("remote-video").srcObject = null;
         socket.emit("end-call");
     }
-    document.getElementById("end-call").style.display = "none"; // ✅ Cacher le bouton après raccrochage
+    document.getElementById("end-call").style.display = "none";
 }

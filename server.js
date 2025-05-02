@@ -1,43 +1,44 @@
 const express = require("express");
 const http = require("http");
-const { Server } = require("socket.io");
-const path = require("path");
+const socketIO = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = socketIO(server);
 
-app.use(express.static(path.join(__dirname, "public"))); // Servir les fichiers statiques
+const users = {}; // 🔹 Stocke les utilisateurs connectés
+
+app.use(express.static("public")); // 📂 Sert les fichiers statiques (HTML, CSS, JS)
 
 io.on("connection", (socket) => {
-    console.log("🟢 Un utilisateur connecté :", socket.id);
+    console.log(`🔗 Utilisateur connecté : ${socket.id}`);
+    users[socket.id] = socket.id; // 🔹 Assigne un ID unique à chaque utilisateur
 
-    socket.on("start-call", (data) => {
-        console.log("📞 Début d'un appel");
-        socket.broadcast.emit("call-started", data);
+    // Envoyer la liste des utilisateurs connectés
+    io.emit("user-list", Object.values(users));
+
+    socket.on("disconnect", () => {
+        console.log(`❌ Utilisateur déconnecté : ${socket.id}`);
+        delete users[socket.id]; // 🔹 Supprimer l'utilisateur déconnecté
+        io.emit("user-list", Object.values(users)); // 🔹 Mettre à jour la liste des utilisateurs
     });
 
-    socket.on("peer-id", (id) => {
-        console.log("🔗 ID Peer reçu :", id);
-        socket.broadcast.emit("peer-connected", id);
+    // 🔹 Envoi des messages privés
+    socket.on("private-message", ({ to, message }) => {
+        io.to(to).emit("message", { from: socket.id, message });
+    });
+
+    // 🔹 Appels vidéo/vocaux privés
+    socket.on("start-private-call", ({ to, peerId }) => {
+        io.to(to).emit("incoming-call", peerId);
     });
 
     socket.on("end-call", () => {
-        console.log("❌ Appel terminé");
-        socket.broadcast.emit("call-ended");
-    });
-
-    socket.on("message", (msg) => {
-        console.log("💬 Message reçu :", msg);
-        io.emit("message", msg);
-    });
-
-    socket.on("disconnect", () => {
-        console.log("🔴 Un utilisateur s'est déconnecté :", socket.id);
+        io.emit("call-ended");
     });
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
+    console.log(`🚀 Serveur démarré sur le port ${PORT}`);
 });
