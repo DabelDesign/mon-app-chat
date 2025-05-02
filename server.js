@@ -16,20 +16,19 @@ io.on("connection", (socket) => {
     socket.on("set-username", (username) => {
         users[socket.id] = username;
         console.log(`✅ Pseudo enregistré : ${username}`);
-        io.emit("user-list", Object.values(users));
+        io.emit("user-list", users);
     });
-    
 
     socket.on("disconnect", () => {
         console.log(`❌ Utilisateur déconnecté : ${socket.id}`);
         delete users[socket.id];
-        io.emit("user-list", Object.values(users));
+        io.emit("user-list", users);
     });
 
     socket.on("private-message", ({ to, message }) => {
         const recipientSocket = Object.keys(users).find(key => users[key] === to);
         if (recipientSocket) {
-            io.to(recipientSocket).emit("message", { from: users[socket.id], message });
+            io.to(recipientSocket).emit("private-message", { from: users[socket.id], message });
         }
     });
 
@@ -42,6 +41,10 @@ io.on("connection", (socket) => {
 
     socket.on("end-call", () => {
         io.emit("call-ended");
+    });
+
+    socket.on("message", (data) => {
+        io.emit("message", data);
     });
 });
 
