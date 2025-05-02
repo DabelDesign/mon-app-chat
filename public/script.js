@@ -98,8 +98,10 @@ document.getElementById("video-call").addEventListener("click", () => {
     startPrivateVideoCall(recipient);
 });
 
+let recipient = document.getElementById("recipientInput").value;
 console.log(`📞 Tentative d'appel vidéo vers : ${recipient}`); // 🔥 LOG POUR DEBUG
 startPrivateVideoCall(recipient);
+
 
 function startPrivateVideoCall(remoteId) {
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
