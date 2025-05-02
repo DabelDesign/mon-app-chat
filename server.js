@@ -46,6 +46,9 @@ io.on("connection", (socket) => {
         }
         console.log(`📩 Message privé envoyé à ${to}: ${message}`);
     });
+    socket.on("peer-id", (id) => {
+        console.log(`🔗 ID PeerJS enregistré : ${id}`);
+    });
     
     
     socket.on("start-private-call", ({ to, peerId }) => {

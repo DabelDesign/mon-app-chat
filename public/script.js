@@ -4,9 +4,13 @@ socket.on("connect", () => {
     console.log("✅ Connecté à Socket.IO");
 });
 
+
 const peer = new Peer({
     config: {
-        iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+        iceServers: [
+            { urls: "stun:stun.l.google.com:19302" }, 
+            { urls: "turn:relay.backups.cz", username: "webrtc", credential: "webrtc" }
+        ]
     }
 });
 
@@ -83,10 +87,11 @@ document.getElementById("video-call").addEventListener("click", () => {
     console.log(`📞 Tentative d'appel vidéo vers : ${recipient}`);
     startPrivateVideoCall(recipient);
 });
+    console.log(`📞 Tentative d'appel PeerJS vers : ${remoteId}`);
 
 function startPrivateVideoCall(remoteId) {
     if (!remoteId) {
-        console.error("❌ Erreur : aucun ID PeerJS pour l’appel !");
+    console.error("❌ Erreur : aucun ID PeerJS pour l’appel !");
         return;
     }
 
