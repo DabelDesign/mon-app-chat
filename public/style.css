@@ -48,3 +48,9 @@ video {
     margin-top: 10px;
     border: 2px solid #007bff;
 }
+.chat-box {
+    max-height: 300px; /* Définit une hauteur maximale pour la boîte de messages */
+    overflow-y: auto; /* Permet le défilement vertical */
+    border: 1px solid #ddd;
+    padding: 10px;
+}
