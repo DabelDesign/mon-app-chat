@@ -83,3 +83,46 @@ socket.on("private-message", ({ from, message }) => {
 
     chatBox.appendChild(messageElement);
 });
+
+// 🔹 Gestion des appels vidéo et vocaux
+document.getElementById("video-call").addEventListener("click", () => {
+    const recipient = document.getElementById("user-list").value;
+    if (!recipient) {
+        console.error("❌ Aucun utilisateur sélectionné pour l’appel !");
+        return;
+    }
+
+    console.log(`📞 Tentative d'appel vidéo vers : ${recipient}`); // 🔥 LOG POUR DEBUG
+    startPrivateVideoCall(recipient);
+});
+
+function startPrivateVideoCall(remoteId) {
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then((stream) => {
+            document.getElementById("local-video").srcObject = stream;
+            const call = peer.call(remoteId, stream);
+            call.on("stream", (remoteStream) => {
+                document.getElementById("remote-video").srcObject = remoteStream;
+                document.getElementById("end-call").style.display = "block";
+            });
+
+            call.on("error", (err) => {
+                console.error("❌ Erreur lors de l’appel PeerJS :", err);
+            });
+        })
+        .catch((err) => console.error("❌ Erreur d’accès à la caméra/micro :", err));
+}
+
+peer.on("call", (call) => {
+    console.log("📞 Appel entrant détecté !");
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then((stream) => {
+            call.answer(stream);
+            document.getElementById("local-video").srcObject = stream;
+            call.on("stream", (remoteStream) => {
+                document.getElementById("remote-video").srcObject = remoteStream;
+                document.getElementById("end-call").style.display = "block";
+            });
+        })
+        .catch((err) => console.error("❌ Erreur d’accès à la caméra/micro :", err));
+});
