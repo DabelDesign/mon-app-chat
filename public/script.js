@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     socket.on("user-list", (users) => {
         userList.innerHTML = "";
-        users.forEach((username) => {
+        Object.values(users).forEach((username) => {
             const option = document.createElement("option");
             option.value = username;
             option.textContent = username;

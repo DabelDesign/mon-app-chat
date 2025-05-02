@@ -14,24 +14,28 @@ io.on("connection", (socket) => {
     console.log(`🔗 Utilisateur connecté : ${socket.id}`);
 
     socket.on("set-username", (username) => {
-        users[socket.id] = username; // 🔹 Associe le pseudo à l’ID
-        io.emit("user-list", Object.values(users)); // 🔹 Met à jour la liste des pseudos
+        users[socket.id] = username;
+        io.emit("user-list", users);
     });
 
     socket.on("disconnect", () => {
         console.log(`❌ Utilisateur déconnecté : ${socket.id}`);
-        delete users[socket.id]; // 🔹 Supprime l’utilisateur lorsqu’il quitte
-        io.emit("user-list", Object.values(users));
+        delete users[socket.id];
+        io.emit("user-list", users);
     });
 
-    // 🔹 Envoi des messages privés
     socket.on("private-message", ({ to, message }) => {
-        io.to(to).emit("message", { from: users[socket.id], message });
+        const recipientSocket = Object.keys(users).find(key => users[key] === to);
+        if (recipientSocket) {
+            io.to(recipientSocket).emit("message", { from: users[socket.id], message });
+        }
     });
 
-    // 🔹 Appels vidéo/vocaux privés
     socket.on("start-private-call", ({ to, peerId }) => {
-        io.to(to).emit("incoming-call", peerId);
+        const recipientSocket = Object.keys(users).find(key => users[key] === to);
+        if (recipientSocket) {
+            io.to(recipientSocket).emit("incoming-call", peerId);
+        }
     });
 
     socket.on("end-call", () => {
