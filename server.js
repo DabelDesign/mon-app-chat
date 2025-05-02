@@ -59,11 +59,12 @@ io.on("connection", (socket) => {
     });
 
     socket.on("end-call", () => {
+        console.log("🔴 Fin d’appel reçue !");
         io.emit("call-ended");
     });
-});
+}); // 🔹 Ajout de la accolade manquante pour fermer le bloc io.on("connection")
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`🚀 Serveur démarré sur le port ${PORT}`);
-});
+})

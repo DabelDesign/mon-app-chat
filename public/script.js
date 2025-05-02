@@ -146,3 +146,19 @@ function startPrivateVoiceCall(remoteId) {
         })
         .catch((err) => console.error("❌ Erreur d’accès au micro :", err));
 }
+document.getElementById("end-call").addEventListener("click", () => {
+    console.log("🔴 Tentative de raccrochage...");
+    endPrivateCall();
+});
+function endPrivateCall() {
+    if (peer) {
+        peer.disconnect(); // 🔥 Ferme la connexion PeerJS
+        console.log("🔴 Appel terminé !");
+    }
+
+    document.getElementById("local-video").srcObject = null;
+    document.getElementById("remote-video").srcObject = null;
+    document.getElementById("end-call").style.display = "none";
+
+    socket.emit("end-call"); // 🔥 Informe l’autre utilisateur que l’appel est terminé
+}
