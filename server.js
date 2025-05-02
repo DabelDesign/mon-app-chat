@@ -42,10 +42,6 @@ io.on("connection", (socket) => {
     socket.on("end-call", () => {
         io.emit("call-ended");
     });
-
-    socket.on("message", (data) => {
-        io.emit("message", data);
-    });
 });
 
 const PORT = process.env.PORT || 3000;
