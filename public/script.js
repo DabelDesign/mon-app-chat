@@ -1,4 +1,4 @@
-import Peer from "peerjs";
+import Peer from "./node_modules/peerjs/dist/peerjs.min.js";
 import io from "socket.io-client";
 
 const socket = io("https://mon-app-chat-production.up.railway.app/");
