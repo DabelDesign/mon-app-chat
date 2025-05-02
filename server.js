@@ -15,8 +15,10 @@ io.on("connection", (socket) => {
 
     socket.on("set-username", (username) => {
         users[socket.id] = username;
+        console.log(`✅ Pseudo enregistré : ${username}`);
         io.emit("user-list", Object.values(users));
     });
+    
 
     socket.on("disconnect", () => {
         console.log(`❌ Utilisateur déconnecté : ${socket.id}`);
