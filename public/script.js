@@ -7,7 +7,7 @@ socket.on("connect", () => {
 const peer = new Peer();
 
 peer.on("open", (id) => {
-    console.log("🟢 Connexion PeerJS établie, ID :", id);
+    console.log(`🟢 Connexion PeerJS établie, ID : ${id}`);
     socket.emit("peer-id", id);
 });
 
@@ -47,27 +47,10 @@ document.getElementById("send-button").addEventListener("click", async () => {
         const data = { type: "text", content: message };
 
         if (file) {
-            const formData = new FormData();
-            formData.append("file", file);
-
-            try {
-                const response = await fetch("/upload", {
-                    method: "POST",
-                    body: formData
-                });
-
-                const result = await response.json();
-                data.type = "file";
-                data.fileUrl = result.fileUrl;
-                data.fileName = file.name;
-            } catch (error) {
-                console.error("❌ Erreur d'envoi du fichier :", error);
-            }
+            console.log(`📎 Fichier sélectionné : ${file.name}`);
         }
 
         socket.emit("private-message", { to: recipient, message: data });
-        document.getElementById("message-input").value = "";
-        document.getElementById("file-input").value = "";
     }
 });
 
@@ -75,12 +58,7 @@ socket.on("private-message", ({ from, message }) => {
     const chatBox = document.getElementById("chat-box");
     const messageElement = document.createElement("div");
 
-    if (message.type === "text") {
-        messageElement.textContent = `De ${from}: ${message.content}`;
-    } else if (message.type === "file") {
-        messageElement.innerHTML = `<a href="${message.fileUrl}" download="${message.fileName}">📎 ${message.fileName}</a>`;
-    }
-
+    messageElement.textContent = `De ${from}: ${message.content}`;
     chatBox.appendChild(messageElement);
 });
 
@@ -98,23 +76,26 @@ document.getElementById("video-call").addEventListener("click", () => {
     startPrivateVideoCall(recipient);
 });
 
-let recipient = document.getElementById("recipientInput").value;
-console.log(`📞 Tentative d'appel vidéo vers : ${recipient}`); // 🔥 LOG POUR DEBUG
-startPrivateVideoCall(recipient);
-
-
 function startPrivateVideoCall(remoteId) {
+    if (!remoteId) {
+        console.error("❌ Erreur : aucun ID PeerJS pour l’appel !");
+        return;
+    }
+
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         .then((stream) => {
+            console.log("🎥 Caméra et micro détectés !");
             document.getElementById("local-video").srcObject = stream;
+            
             const call = peer.call(remoteId, stream);
+            
             call.on("stream", (remoteStream) => {
                 document.getElementById("remote-video").srcObject = remoteStream;
                 document.getElementById("end-call").style.display = "block";
             });
 
             call.on("error", (err) => {
-                console.error("❌ Erreur lors de l’appel PeerJS :", err);
+                console.error("❌ Erreur PeerJS pendant l’appel :", err);
             });
         })
         .catch((err) => console.error("❌ Erreur d’accès à la caméra/micro :", err));
@@ -122,14 +103,4 @@ function startPrivateVideoCall(remoteId) {
 
 peer.on("call", (call) => {
     console.log("📞 Appel entrant détecté !");
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-        .then((stream) => {
-            call.answer(stream);
-            document.getElementById("local-video").srcObject = stream;
-            call.on("stream", (remoteStream) => {
-                document.getElementById("remote-video").srcObject = remoteStream;
-                document.getElementById("end-call").style.display = "block";
-            });
-        })
-        .catch((err) => console.error("❌ Erreur d’accès à la caméra/micro :", err));
 });
