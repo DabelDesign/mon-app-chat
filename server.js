@@ -33,7 +33,8 @@ io.on("connection", (socket) => {
     socket.on("set-username", (username) => {
         users[socket.id] = username;
         console.log(`✅ Pseudo enregistré : ${username}`);
-        io.emit("user-list", users); // 🔹 Mise à jour immédiate de la liste des utilisateurs
+        io.emit("user-list", users);
+        console.log("🟢 Liste des utilisateurs envoyée au client :", users);
     });
 
     socket.on("peer-id", (peerId) => {
@@ -47,7 +48,8 @@ io.on("connection", (socket) => {
         delete peers[socket.id];
         delete activeCalls[socket.id];
 
-        io.emit("user-list", users); // 🔹 Mise à jour après une déconnexion
+        io.emit("user-list", users);
+        console.log("🟢 Mise à jour de la liste après déconnexion :", users);
     });
 
     // 🔹 Gestion des appels privés

@@ -22,13 +22,11 @@ let activeCall = null;
 
 // 🔹 Mise à jour de la liste des utilisateurs
 socket.on("user-list", (users) => {
+    console.log("🔄 Utilisateurs reçus :", users);
+
     const userList = document.getElementById("user-list");
     userList.innerHTML = ""; // 🔄 Vide la liste avant de la mettre à jour
-
-    if (Object.keys(users).length === 0) {
-        console.warn("⚠️ Aucun utilisateur connecté !");
-        return;
-    }
+    userList.disabled = false; // ✅ Active la sélection des utilisateurs
 
     Object.entries(users).forEach(([id, username]) => {
         const option = document.createElement("option");
@@ -66,25 +64,6 @@ function startCall(remoteId, options) {
         })
         .catch((err) => console.error("❌ Erreur d’accès aux médias :", err));
 }
-
-// 🔹 Boutons d’appel
-document.getElementById("video-call").addEventListener("click", () => {
-    const recipient = document.getElementById("user-list").value;
-    if (!recipient) {
-        alert("❌ Sélectionne un utilisateur avant l’appel !");
-        return;
-    }
-    startCall(recipient, { video: true, audio: true });
-});
-
-document.getElementById("voice-call").addEventListener("click", () => {
-    const recipient = document.getElementById("user-list").value;
-    if (!recipient) {
-        alert("❌ Sélectionne un utilisateur avant l’appel !");
-        return;
-    }
-    startCall(recipient, { audio: true });
-});
 
 // 🔹 Raccrochage des appels
 function endCall() {
