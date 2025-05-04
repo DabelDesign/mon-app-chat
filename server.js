@@ -13,25 +13,23 @@ peerServer.on("connection", (client) => {
     console.log(`🟢 Peer connecté : ${client.getId()}`);
 });
 
-// 🔹 Stockage des utilisateurs avec leurs PeerJS IDs
+// 🔹 Stockage des utilisateurs et PeerJS IDs
 const users = {};
 const peers = {};
+const activeCalls = {}; // 🔹 Suivi des appels en cours
 
-// 📂 Servir les fichiers statiques (HTML, CSS, JS)
 app.use(express.static("public"));
 
-// 🔹 Sécurité et cache
 app.use((req, res, next) => {
-    res.setHeader("Cache-Control", "public, max-age=31536000"); // Cache optimisé
-    res.setHeader("X-Content-Type-Options", "nosniff"); // Protection contre MIME sniffing
-    res.removeHeader("X-Powered-By"); // 🔥 Supprime les infos serveur pour éviter l'exposition
+    res.setHeader("Cache-Control", "public, max-age=31536000");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.removeHeader("X-Powered-By");
     next();
 });
 
 io.on("connection", (socket) => {
     console.log(`🔗 Utilisateur connecté : ${socket.id}`);
 
-    // 🔹 Enregistrement du pseudo et ID PeerJS
     socket.on("set-username", (username) => {
         users[socket.id] = username;
         console.log(`✅ Pseudo enregistré : ${username}`);
@@ -43,24 +41,12 @@ io.on("connection", (socket) => {
         console.log(`🔗 ID PeerJS enregistré : ${peerId}`);
     });
 
-    // 🔹 Déconnexion de l'utilisateur
     socket.on("disconnect", () => {
         console.log(`❌ Utilisateur déconnecté : ${socket.id}`);
         delete users[socket.id];
         delete peers[socket.id];
+        delete activeCalls[socket.id];
         io.emit("user-list", users);
-    });
-
-    // 🔹 Gestion des messages privés
-    socket.on("private-message", ({ to, message }) => {
-        const recipientSocket = Object.keys(users).find(key => users[key] === to);
-        if (!recipientSocket) {
-            console.error(`❌ Utilisateur introuvable pour l'envoi du message : ${to}`);
-            return;
-        }
-
-        io.to(recipientSocket).emit("private-message", { from: users[socket.id], message });
-        console.log(`📩 Message privé envoyé à ${to}:`, message);
     });
 
     // 🔹 Gestion des appels privés
@@ -73,16 +59,29 @@ io.on("connection", (socket) => {
             return;
         }
 
+        activeCalls[socket.id] = recipientSocket;
+        activeCalls[recipientSocket] = socket.id;
+
         io.to(recipientSocket).emit("incoming-call", peerId);
     });
 
     socket.on("end-call", () => {
-        console.log("🔴 Fin d’appel reçue !");
-        io.emit("call-ended");
+        const recipientSocket = activeCalls[socket.id];
+        if (!recipientSocket) {
+            console.error("❌ Aucun appel en cours à terminer !");
+            return;
+        }
+
+        console.log(`🔴 Fin d’appel entre ${socket.id} et ${recipientSocket}`);
+
+        io.to(recipientSocket).emit("call-ended");
+        io.to(socket.id).emit("call-ended");
+
+        delete activeCalls[socket.id];
+        delete activeCalls[recipientSocket];
     });
 });
 
-// 🔥 Démarrage du serveur
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`🚀 Serveur démarré sur le port ${PORT}`);
