@@ -1,35 +1,27 @@
 const socket = io("https://mon-app-chat-production.up.railway.app/");
 
-socket.on("connect", () => {
-    console.log("✅ Connecté à Socket.IO");
-});
-
+socket.on("connect", () => console.log("✅ Connecté à Socket.IO"));
 
 const peer = new Peer({
     config: {
         iceServers: [
-            { urls: "stun:stun.l.google.com:19302" }, 
+            { urls: "stun:stun.l.google.com:19302" },
             { urls: "turn:relay.backups.cz", username: "webrtc", credential: "webrtc" }
         ]
     }
 });
-
 
 peer.on("open", (id) => {
     console.log(`🟢 Connexion PeerJS établie, ID : ${id}`);
     socket.emit("peer-id", id);
 });
 
-peer.on("error", (err) => {
-    console.error("❌ Erreur PeerJS :", err);
-});
+peer.on("error", (err) => console.error("❌ Erreur PeerJS :", err));
 
 // 🔹 Enregistrement du pseudo
 document.getElementById("set-username").addEventListener("click", () => {
     const username = document.getElementById("username-input").value.trim();
-    if (username) {
-        socket.emit("set-username", username);
-    }
+    if (username) socket.emit("set-username", username);
 });
 
 socket.on("user-list", (users) => {
@@ -46,7 +38,7 @@ socket.on("user-list", (users) => {
     console.log("🟢 Liste des utilisateurs mise à jour :", users);
 });
 
-// 🔹 Envoi de messages et fichiers
+// 🔹 Envoi de messages
 document.getElementById("send-button").addEventListener("click", async () => {
     const recipient = document.getElementById("user-list").value;
     const message = document.getElementById("message-input").value.trim();
@@ -54,11 +46,7 @@ document.getElementById("send-button").addEventListener("click", async () => {
 
     if (message || file) {
         const data = { type: "text", content: message };
-
-        if (file) {
-            console.log(`📎 Fichier sélectionné : ${file.name}`);
-        }
-
+        if (file) console.log(`📎 Fichier sélectionné : ${file.name}`);
         socket.emit("private-message", { to: recipient, message: data });
     }
 });
@@ -66,99 +54,46 @@ document.getElementById("send-button").addEventListener("click", async () => {
 socket.on("private-message", ({ from, message }) => {
     const chatBox = document.getElementById("chat-box");
     const messageElement = document.createElement("div");
-
     messageElement.textContent = `De ${from}: ${message.content}`;
     chatBox.appendChild(messageElement);
 });
 
-// 🔹 Gestion des appels vidéo et vocaux
-peer.on("call", (call) => {
-    console.log("📞 Appel entrant détecté !");
-});
-document.getElementById("video-call").addEventListener("click", () => {
-    const recipient = document.getElementById("user-list").value;
-
-    if (!recipient || recipient.trim() === "") {
-        alert("❌ Sélectionne un utilisateur avant de lancer l’appel !");
-        console.error("❌ Aucun utilisateur sélectionné pour l’appel !");
-        return;
-    }
-
-    console.log(`📞 Tentative d'appel vidéo vers : ${recipient}`);
-    startPrivateVideoCall(recipient);
-});
-    console.log(`📞 Tentative d'appel PeerJS vers : ${remoteId}`);
-
-function startPrivateVideoCall(remoteId) {
+// 🔹 Gestion des appels
+function startCall(remoteId, options) {
     if (!remoteId) {
-    console.error("❌ Erreur : aucun ID PeerJS pour l’appel !");
+        console.error("❌ Aucun ID PeerJS pour l’appel !");
         return;
     }
 
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+    navigator.mediaDevices.getUserMedia(options)
         .then((stream) => {
-            console.log("🎥 Caméra et micro détectés !");
+            console.log("🎥 Média détecté !");
             document.getElementById("local-video").srcObject = stream;
-            console.log(`📞 Envoi de l'appel PeerJS vers : ${remoteId}`);
             const call = peer.call(remoteId, stream);
-            
+
             call.on("stream", (remoteStream) => {
                 document.getElementById("remote-video").srcObject = remoteStream;
                 document.getElementById("end-call").style.display = "block";
             });
 
-            call.on("error", (err) => {
-                console.error("❌ Erreur PeerJS pendant l’appel :", err);
-            });
+            call.on("error", (err) => console.error("❌ Erreur PeerJS :", err));
         })
-        .catch((err) => console.error("❌ Erreur d’accès à la caméra/micro :", err));
+        .catch((err) => console.error("❌ Erreur d’accès aux médias :", err));
 }
 
-peer.on("call", (call) => {
-    console.log("📞 Appel entrant détecté !");
-});
-document.getElementById("voice-call").addEventListener("click", () => {
-    const recipient = document.getElementById("user-list").value;
-    
-    if (!recipient || recipient.trim() === "") {
-        alert("❌ Sélectionne un utilisateur avant de passer un appel vocal !");
-        console.error("❌ Aucun utilisateur sélectionné !");
-        return;
-    }
+document.getElementById("video-call").addEventListener("click", () => startCall(
+    document.getElementById("user-list").value, { video: true, audio: true }
+));
 
-    console.log(`📞 Tentative d'appel vocal vers : ${recipient}`);
-    startPrivateVoiceCall(recipient);
-});
+document.getElementById("voice-call").addEventListener("click", () => startCall(
+    document.getElementById("user-list").value, { audio: true }
+));
 
-function startPrivateVoiceCall(remoteId) {
-    navigator.mediaDevices.getUserMedia({ audio: true })
-        .then((stream) => {
-            console.log("🎙️ Micro détecté !");
-            const call = peer.call(remoteId, stream);
-            
-            call.on("stream", (remoteStream) => {
-                console.log("🎧 Audio reçu !");
-            });
-
-            call.on("error", (err) => {
-                console.error("❌ Erreur PeerJS lors de l'appel vocal :", err);
-            });
-        })
-        .catch((err) => console.error("❌ Erreur d’accès au micro :", err));
-}
 document.getElementById("end-call").addEventListener("click", () => {
-    console.log("🔴 Tentative de raccrochage...");
-    endPrivateCall();
-});
-function endPrivateCall() {
-    if (peer) {
-        peer.disconnect(); // 🔥 Ferme la connexion PeerJS
-        console.log("🔴 Appel terminé !");
-    }
-
+    peer.disconnect();
+    console.log("🔴 Appel terminé !");
     document.getElementById("local-video").srcObject = null;
     document.getElementById("remote-video").srcObject = null;
     document.getElementById("end-call").style.display = "none";
-
-    socket.emit("end-call"); // 🔥 Informe l’autre utilisateur que l’appel est terminé
-}
+    socket.emit("end-call");
+});
