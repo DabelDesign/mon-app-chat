@@ -13,8 +13,9 @@ peerServer.on("connection", (client) => {
     console.log(`🟢 Peer connecté : ${client.getId()}`);
 });
 
-// 🔹 Stockage des utilisateurs
+// 🔹 Stockage des utilisateurs avec leurs PeerJS IDs
 const users = {};
+const peers = {};
 
 // 📂 Servir les fichiers statiques (HTML, CSS, JS)
 app.use(express.static("public"));
@@ -22,7 +23,7 @@ app.use(express.static("public"));
 // 🔹 Sécurité et cache
 app.use((req, res, next) => {
     res.setHeader("Cache-Control", "public, max-age=31536000"); // Cache optimisé
-    res.setHeader("X-Content-Type-Options", "nosniff"); // Sécurité contre MIME sniffing
+    res.setHeader("X-Content-Type-Options", "nosniff"); // Protection contre MIME sniffing
     res.removeHeader("X-Powered-By"); // 🔥 Supprime les infos serveur pour éviter l'exposition
     next();
 });
@@ -30,17 +31,23 @@ app.use((req, res, next) => {
 io.on("connection", (socket) => {
     console.log(`🔗 Utilisateur connecté : ${socket.id}`);
 
-    // 🔹 Enregistrement du pseudo
+    // 🔹 Enregistrement du pseudo et ID PeerJS
     socket.on("set-username", (username) => {
         users[socket.id] = username;
         console.log(`✅ Pseudo enregistré : ${username}`);
         io.emit("user-list", users);
     });
 
-    // 🔹 Déconnexion
+    socket.on("peer-id", (peerId) => {
+        peers[socket.id] = peerId;
+        console.log(`🔗 ID PeerJS enregistré : ${peerId}`);
+    });
+
+    // 🔹 Déconnexion de l'utilisateur
     socket.on("disconnect", () => {
         console.log(`❌ Utilisateur déconnecté : ${socket.id}`);
         delete users[socket.id];
+        delete peers[socket.id];
         io.emit("user-list", users);
     });
 
@@ -56,16 +63,13 @@ io.on("connection", (socket) => {
         console.log(`📩 Message privé envoyé à ${to}:`, message);
     });
 
-    // 🔹 Enregistrement de l'ID PeerJS
-    socket.on("peer-id", (id) => {
-        console.log(`🔗 ID PeerJS enregistré : ${id}`);
-    });
-
     // 🔹 Gestion des appels privés
-    socket.on("start-private-call", ({ to, peerId }) => {
+    socket.on("start-private-call", ({ to }) => {
         const recipientSocket = Object.keys(users).find(key => users[key] === to);
-        if (!recipientSocket) {
-            console.error(`❌ Impossible de démarrer l'appel : utilisateur introuvable (${to})`);
+        const peerId = peers[socket.id];
+
+        if (!recipientSocket || !peerId) {
+            console.error(`❌ Impossible de démarrer l'appel : utilisateur ou PeerJS ID introuvable (${to})`);
             return;
         }
 

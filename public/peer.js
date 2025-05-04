@@ -15,8 +15,15 @@ if (!remoteVideo || !localVideo) {
     console.error("❌ Les éléments vidéo ne sont pas disponibles !");
 }
 
-// 🔹 Initialisation de PeerJS
-const peer = new Peer();
+// 🔹 Initialisation de PeerJS avec un serveur TURN
+const peer = new Peer({
+    config: {
+        iceServers: [
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "turn:numb.viagenie.ca", username: "webrtc@live.com", credential: "muazkh" }
+        ]
+    }
+});
 
 peer.on("open", (id) => {
     console.log(`🟢 Connexion PeerJS établie, ID : ${id}`);
@@ -29,12 +36,19 @@ socket.on("peer-connected", (id) => {
     remotePeerId = id;
 });
 
+// 🔹 Vérification avant appel
+function verifyPeerId(remoteId) {
+    if (!remoteId || remoteId.length < 5) {
+        console.error("❌ ID PeerJS invalide !");
+        return false;
+    }
+    console.log(`📞 Tentative de connexion avec Peer : ${remoteId}`);
+    return true;
+}
+
 // 🔹 Fonction générique pour démarrer un appel
 function startCall(remoteId, options) {
-    if (!remoteId) {
-        console.error("❌ Aucun ID PeerJS pour l’appel !");
-        return;
-    }
+    if (!verifyPeerId(remoteId)) return;
 
     navigator.mediaDevices.getUserMedia(options)
         .then((stream) => {
@@ -45,6 +59,11 @@ function startCall(remoteId, options) {
                 remoteVideo.srcObject = remoteStream;
             });
 
+            call.on("close", () => {
+                console.log("🔴 L'appel a été terminé !");
+                endCall();
+            });
+
             call.on("error", (err) => console.error("❌ Erreur d’appel PeerJS :", err));
         })
         .catch((err) => console.error("❌ Erreur d’accès aux médias :", err));
@@ -52,14 +71,17 @@ function startCall(remoteId, options) {
 
 // 🔹 Boutons d'appel
 document.getElementById("video-call").addEventListener("click", () => {
-    if (!remotePeerId) {
-        console.error("❌ Aucun Peer distant trouvé !");
-        return;
-    }
+    if (!verifyPeerId(remotePeerId)) return;
     startCall(remotePeerId, { video: true, audio: true });
 });
 
+document.getElementById("voice-call").addEventListener("click", () => {
+    if (!verifyPeerId(remotePeerId)) return;
+    startCall(remotePeerId, { audio: true });
+});
+
 peer.on("call", (call) => {
+    console.log("📞 Appel entrant détecté !");
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         .then((stream) => {
             call.answer(stream);
@@ -67,8 +89,33 @@ peer.on("call", (call) => {
             call.on("stream", (remoteStream) => {
                 remoteVideo.srcObject = remoteStream;
             });
+            call.on("close", () => {
+                console.log("🔴 L'appel a été terminé !");
+                endCall();
+            });
         })
         .catch((err) => console.error("❌ Erreur d’accès aux médias :", err));
+});
+
+// 🔹 Fonction pour raccrocher correctement les appels
+function endCall() {
+    if (peer) {
+        peer.destroy();
+        console.log("🔴 Appel terminé !");
+    }
+
+    document.getElementById("local-video").srcObject = null;
+    document.getElementById("remote-video").srcObject = null;
+    document.getElementById("end-call").style.display = "none";
+
+    socket.emit("end-call");
+}
+
+document.getElementById("end-call").addEventListener("click", endCall);
+
+socket.on("call-ended", () => {
+    console.log("🔴 Fin d’appel détectée !");
+    endCall();
 });
 
 // 🔹 Gestion des messages et fichiers
