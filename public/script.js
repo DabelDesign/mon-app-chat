@@ -28,9 +28,9 @@ socket.on("user-list", (users) => {
     const userList = document.getElementById("user-list");
     userList.innerHTML = "";
 
-    Object.values(users).forEach((username) => {
+    Object.entries(users).forEach(([id, username]) => {
         const option = document.createElement("option");
-        option.value = username;
+        option.value = id; // 🔹 Utilisation de l'ID au lieu du pseudo
         option.textContent = username;
         userList.appendChild(option);
     });
@@ -44,17 +44,26 @@ document.getElementById("send-button").addEventListener("click", async () => {
     const message = document.getElementById("message-input").value.trim();
     const file = document.getElementById("file-input").files[0];
 
-    if (message || file) {
+    if (recipient && (message || file)) {
         const data = { type: "text", content: message };
-        if (file) console.log(`📎 Fichier sélectionné : ${file.name}`);
+        if (file) {
+            console.log(`📎 Fichier sélectionné : ${file.name}`);
+            data.fileName = file.name;
+        }
         socket.emit("private-message", { to: recipient, message: data });
+    } else {
+        console.error("❌ Aucun destinataire ou message vide !");
     }
 });
 
 socket.on("private-message", ({ from, message }) => {
     const chatBox = document.getElementById("chat-box");
     const messageElement = document.createElement("div");
-    messageElement.textContent = `De ${from}: ${message.content}`;
+
+    messageElement.textContent = message.fileName
+        ? `📎 ${from} a envoyé un fichier : ${message.fileName}`
+        : `💬 De ${from}: ${message.content}`;
+
     chatBox.appendChild(messageElement);
 });
 
@@ -76,24 +85,45 @@ function startCall(remoteId, options) {
                 document.getElementById("end-call").style.display = "block";
             });
 
+            call.on("close", () => {
+                console.log("🔴 L'appel a été terminé !");
+                endCall();
+            });
+
             call.on("error", (err) => console.error("❌ Erreur PeerJS :", err));
         })
         .catch((err) => console.error("❌ Erreur d’accès aux médias :", err));
 }
 
-document.getElementById("video-call").addEventListener("click", () => startCall(
-    document.getElementById("user-list").value, { video: true, audio: true }
-));
+document.getElementById("video-call").addEventListener("click", () => {
+    const recipient = document.getElementById("user-list").value;
+    if (!recipient) return alert("❌ Sélectionne un utilisateur avant l’appel !");
+    startCall(recipient, { video: true, audio: true });
+});
 
-document.getElementById("voice-call").addEventListener("click", () => startCall(
-    document.getElementById("user-list").value, { audio: true }
-));
+document.getElementById("voice-call").addEventListener("click", () => {
+    const recipient = document.getElementById("user-list").value;
+    if (!recipient) return alert("❌ Sélectionne un utilisateur avant l’appel !");
+    startCall(recipient, { audio: true });
+});
 
-document.getElementById("end-call").addEventListener("click", () => {
-    peer.disconnect();
-    console.log("🔴 Appel terminé !");
+// 🔹 Raccrochage des appels
+function endCall() {
+    if (peer) {
+        peer.destroy();
+        console.log("🔴 Appel terminé !");
+    }
+
     document.getElementById("local-video").srcObject = null;
     document.getElementById("remote-video").srcObject = null;
     document.getElementById("end-call").style.display = "none";
+
     socket.emit("end-call");
+}
+
+document.getElementById("end-call").addEventListener("click", endCall);
+
+socket.on("call-ended", () => {
+    console.log("🔴 Fin d’appel détectée !");
+    endCall();
 });
