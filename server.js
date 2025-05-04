@@ -33,7 +33,7 @@ io.on("connection", (socket) => {
     socket.on("set-username", (username) => {
         users[socket.id] = username;
         console.log(`✅ Pseudo enregistré : ${username}`);
-        io.emit("user-list", users);
+        io.emit("user-list", users); // 🔹 Mise à jour immédiate de la liste des utilisateurs
     });
 
     socket.on("peer-id", (peerId) => {
@@ -46,7 +46,8 @@ io.on("connection", (socket) => {
         delete users[socket.id];
         delete peers[socket.id];
         delete activeCalls[socket.id];
-        io.emit("user-list", users);
+
+        io.emit("user-list", users); // 🔹 Mise à jour après une déconnexion
     });
 
     // 🔹 Gestion des appels privés
@@ -65,6 +66,7 @@ io.on("connection", (socket) => {
         io.to(recipientSocket).emit("incoming-call", peerId);
     });
 
+    // 🔹 Gestion du raccrochage des appels
     socket.on("end-call", () => {
         const recipientSocket = activeCalls[socket.id];
         if (!recipientSocket) {
@@ -79,6 +81,8 @@ io.on("connection", (socket) => {
 
         delete activeCalls[socket.id];
         delete activeCalls[recipientSocket];
+
+        console.log("✅ Appel terminé avec succès !");
     });
 });
 

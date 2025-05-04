@@ -20,16 +20,24 @@ peer.on("error", (err) => console.error("❌ Erreur PeerJS :", err));
 
 let activeCall = null;
 
-document.getElementById("video-call").addEventListener("click", () => {
-    const recipient = document.getElementById("user-list").value;
-    if (!recipient) return alert("❌ Sélectionne un utilisateur avant l’appel !");
-    startCall(recipient, { video: true, audio: true });
-});
+// 🔹 Mise à jour de la liste des utilisateurs
+socket.on("user-list", (users) => {
+    const userList = document.getElementById("user-list");
+    userList.innerHTML = ""; // 🔄 Vide la liste avant de la mettre à jour
 
-document.getElementById("voice-call").addEventListener("click", () => {
-    const recipient = document.getElementById("user-list").value;
-    if (!recipient) return alert("❌ Sélectionne un utilisateur avant l’appel !");
-    startCall(recipient, { audio: true });
+    if (Object.keys(users).length === 0) {
+        console.warn("⚠️ Aucun utilisateur connecté !");
+        return;
+    }
+
+    Object.entries(users).forEach(([id, username]) => {
+        const option = document.createElement("option");
+        option.value = id;
+        option.textContent = username;
+        userList.appendChild(option);
+    });
+
+    console.log("🟢 Liste des utilisateurs mise à jour :", users);
 });
 
 // 🔹 Fonction pour démarrer un appel
@@ -59,15 +67,35 @@ function startCall(remoteId, options) {
         .catch((err) => console.error("❌ Erreur d’accès aux médias :", err));
 }
 
+// 🔹 Boutons d’appel
+document.getElementById("video-call").addEventListener("click", () => {
+    const recipient = document.getElementById("user-list").value;
+    if (!recipient) {
+        alert("❌ Sélectionne un utilisateur avant l’appel !");
+        return;
+    }
+    startCall(recipient, { video: true, audio: true });
+});
+
+document.getElementById("voice-call").addEventListener("click", () => {
+    const recipient = document.getElementById("user-list").value;
+    if (!recipient) {
+        alert("❌ Sélectionne un utilisateur avant l’appel !");
+        return;
+    }
+    startCall(recipient, { audio: true });
+});
+
 // 🔹 Raccrochage des appels
 function endCall() {
     if (activeCall) {
         activeCall.close();
+        console.log("🔴 Fermeture de l’appel actif !");
     }
 
-    peer.destroy();
-    console.log("🔴 Appel terminé !");
-
+    peer.disconnect();
+    console.log("🔴 Déconnexion de PeerJS !");
+    
     document.getElementById("local-video").srcObject = null;
     document.getElementById("remote-video").srcObject = null;
     document.getElementById("end-call").style.display = "none";
@@ -75,7 +103,10 @@ function endCall() {
     socket.emit("end-call");
 }
 
-document.getElementById("end-call").addEventListener("click", endCall);
+document.getElementById("end-call").addEventListener("click", () => {
+    console.log("🔴 Bouton \"Raccrocher\" cliqué !");
+    endCall();
+});
 
 socket.on("call-ended", () => {
     console.log("🔴 Fin d’appel détectée !");
