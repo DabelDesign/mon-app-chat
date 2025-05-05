@@ -10,7 +10,7 @@ const io = socketIO(server);
 // 🔹 Initialisation du serveur PeerJS
 const peerServer = PeerServer({ port: 9000, path: "/peerjs" });
 peerServer.on("connection", (client) => {
-    console.log(`🟢 Peer connecté : ${client.getId()}`);
+    console.log(`🟢 Peer connecté : ${client.id}`);
 });
 
 // 🔹 Stockage des utilisateurs et PeerJS IDs
@@ -34,7 +34,6 @@ io.on("connection", (socket) => {
         users[socket.id] = username;
         console.log(`✅ Pseudo enregistré : ${username}`);
         io.emit("user-list", users);
-        console.log("🟢 Liste des utilisateurs envoyée au client :", users);
     });
 
     socket.on("peer-id", (peerId) => {
@@ -49,19 +48,11 @@ io.on("connection", (socket) => {
         delete activeCalls[socket.id];
 
         io.emit("user-list", users);
-        console.log("🟢 Mise à jour de la liste après déconnexion :", users);
     });
 
     // 🔹 Gestion des appels privés
-    socket.on("set-username", (username) => {
-        users[socket.id] = username;
-        console.log(`✅ Pseudo enregistré : ${username}`);
-        io.emit("user-list", users);
-        console.log("🟢 Liste des utilisateurs envoyée au client :", users);
-    });
-    
     socket.on("start-private-call", ({ to }) => {
-        const recipientSocket = Object.keys(users).find(key => users[key] === to);
+        const recipientSocket = Object.keys(peers).find(key => users[key] === to);
         const peerId = peers[socket.id];
 
         if (!recipientSocket || !peerId) {
@@ -79,7 +70,7 @@ io.on("connection", (socket) => {
     socket.on("end-call", () => {
         const recipientSocket = activeCalls[socket.id];
         if (!recipientSocket) {
-            console.error("❌ Aucun appel en cours à terminer !");
+            console.warn("❌ Aucun appel en cours à terminer !");
             return;
         }
 

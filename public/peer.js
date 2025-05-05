@@ -12,7 +12,7 @@ const remoteVideo = document.getElementById("remote-video");
 const localVideo = document.getElementById("local-video");
 
 if (!remoteVideo || !localVideo) {
-    console.error("❌ Les éléments vidéo ne sont pas disponibles !");
+    throw new Error("❌ Les éléments vidéo ne sont pas disponibles !");
 }
 
 // 🔹 Initialisation de PeerJS avec un serveur TURN
@@ -35,9 +35,10 @@ let activeCall = null;
 // 🔹 Mise à jour de la liste des utilisateurs
 socket.on("user-list", (users) => {
     const userList = document.getElementById("user-list");
-    userList.innerHTML = ""; // 🔄 Vide la liste avant de la mettre à jour
+    userList.innerHTML = "";
+    userList.disabled = Object.keys(users).length === 0; // Désactive si aucun utilisateur connecté
 
-    if (Object.keys(users).length === 0) {
+    if (!users || Object.keys(users).length === 0) {
         console.warn("⚠️ Aucun utilisateur connecté !");
         return;
     }
@@ -52,6 +53,12 @@ socket.on("user-list", (users) => {
     console.log("🟢 Liste des utilisateurs mise à jour :", users);
 });
 
+// 🔹 Activation dynamique des boutons d’appel
+document.getElementById("user-list").addEventListener("change", (event) => {
+    const callButtons = document.querySelectorAll("#video-call, #voice-call");
+    callButtons.forEach(btn => btn.disabled = !event.target.value);
+});
+
 // 🔹 Fonction pour démarrer un appel
 function startCall(remoteId, options) {
     if (!remoteId) {
@@ -62,10 +69,11 @@ function startCall(remoteId, options) {
     navigator.mediaDevices.getUserMedia(options)
         .then((stream) => {
             localVideo.srcObject = stream;
-            activeCall = peer.call(remoteId, stream);
+            activeCall = peer.call(remoteId, stream, { metadata: { video: options.video } });
 
             activeCall.on("stream", (remoteStream) => {
                 remoteVideo.srcObject = remoteStream;
+                document.getElementById("end-call").style.display = "block";
             });
 
             activeCall.on("close", () => {
@@ -73,10 +81,30 @@ function startCall(remoteId, options) {
                 endCall();
             });
 
-            activeCall.on("error", (err) => console.error("❌ Erreur d’appel PeerJS :", err));
+            activeCall.on("error", (err) => console.error("❌ Erreur PeerJS :", err));
         })
         .catch((err) => console.error("❌ Erreur d’accès aux médias :", err));
 }
+
+// 🔹 Gestion des appels entrants
+peer.on("call", (call) => {
+    console.log("📞 Appel entrant détecté !");
+    navigator.mediaDevices.getUserMedia(call.metadata.video ? { video: true, audio: true } : { audio: true })
+        .then((stream) => {
+            call.answer(stream);
+            localVideo.srcObject = stream;
+
+            call.on("stream", (remoteStream) => {
+                remoteVideo.srcObject = remoteStream;
+            });
+
+            call.on("close", () => {
+                console.log("🔴 L'appel entrant a été terminé !");
+                endCall();
+            });
+        })
+        .catch((err) => console.error("❌ Erreur d’accès aux médias :", err));
+});
 
 // 🔹 Boutons d’appel
 document.getElementById("video-call").addEventListener("click", () => {
@@ -104,9 +132,6 @@ function endCall() {
         console.log("🔴 Fermeture de l’appel actif !");
     }
 
-    peer.disconnect();
-    console.log("🔴 Déconnexion de PeerJS !");
-    
     document.getElementById("local-video").srcObject = null;
     document.getElementById("remote-video").srcObject = null;
     document.getElementById("end-call").style.display = "none";
@@ -122,24 +147,4 @@ document.getElementById("end-call").addEventListener("click", () => {
 socket.on("call-ended", () => {
     console.log("🔴 Fin d’appel détectée !");
     endCall();
-});
-
-// 🔹 Réception des appels entrants
-peer.on("call", (call) => {
-    console.log("📞 Appel entrant détecté !");
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-        .then((stream) => {
-            call.answer(stream);
-            localVideo.srcObject = stream;
-
-            call.on("stream", (remoteStream) => {
-                remoteVideo.srcObject = remoteStream;
-            });
-
-            call.on("close", () => {
-                console.log("🔴 L'appel entrant a été terminé !");
-                endCall();
-            });
-        })
-        .catch((err) => console.error("❌ Erreur d’accès aux médias :", err));
 });

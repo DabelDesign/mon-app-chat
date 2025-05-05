@@ -14,48 +14,48 @@
             <h1>Mon Chat</h1>
         </header>
 
-        <!-- 🔹 Connexion utilisateur -->
+        <!-- Connexion utilisateur -->
         <div class="login">
             <label for="username-input">Pseudo :</label>
-            <input type="text" id="username-input" placeholder="Choisissez votre pseudo" title="Entrez votre pseudo ici">
+            <input type="text" id="username-input" placeholder="Choisissez votre pseudo" title="Entrez votre pseudo ici" aria-label="Pseudo">
             <button id="set-username" title="Confirmer votre pseudo">Entrer</button>
         </div>
 
-        <!-- 🔹 Liste des utilisateurs en ligne -->
+        <!-- Liste des utilisateurs en ligne -->
         <div class="user-list">
             <label for="user-list">Utilisateur à contacter :</label>
-            <select id="user-list" title="Choisissez un utilisateur"></select>
+            <select id="user-list" title="Choisissez un utilisateur" aria-label="Liste des utilisateurs"></select>
         </div>
 
-        <!-- 🔹 Zone de discussion -->
-        <div class="chat-box" id="chat-box" title="Zone de discussion"></div>
+        <!-- Zone de discussion -->
+        <div class="chat-box" id="chat-box" title="Zone de discussion" aria-label="Zone de discussion"></div>
 
-        <!-- 🔹 Contrôles de messages -->
+        <!-- Contrôles de messages -->
         <div class="message-controls">
             <label for="message-input">Message :</label>
-            <input type="text" id="message-input" placeholder="Tapez votre message..." title="Saisissez votre message">
+            <input type="text" id="message-input" placeholder="Tapez votre message..." title="Saisissez votre message" aria-label="Message">
             <label for="file-input">Ajouter un fichier :</label>
-            <input type="file" id="file-input" accept="image/*,video/*,.pdf,.txt" title="Sélectionnez un fichier">
+            <input type="file" id="file-input" accept="image/*,video/*,.pdf,.txt" title="Sélectionnez un fichier" aria-label="Ajouter un fichier">
             <button id="send-button" title="Envoyer votre message">Envoyer</button>
         </div>
 
-        <!-- 🔹 Contrôles d’appel -->
+        <!-- Contrôles d’appel -->
         <div class="call-controls">
-            <button id="video-call" title="Lancer un appel vidéo">📹 Appel Vidéo</button>
-            <button id="voice-call" title="Lancer un appel vocal">📞 Appel Vocal</button>
-            <button id="end-call" hidden title="Terminer l’appel">🔴 Terminer Appel</button>
+            <button id="video-call" title="Lancer un appel vidéo" aria-label="Appel vidéo">📹 Appel Vidéo</button>
+            <button id="voice-call" title="Lancer un appel vocal" aria-label="Appel vocal">📞 Appel Vocal</button>
+            <button id="end-call" hidden title="Terminer l’appel" aria-label="Terminer l’appel">🔴 Terminer Appel</button>
         </div>
 
-        <!-- 🔹 Vidéos -->
+        <!-- Vidéos -->
         <div class="video-container">
-            <video id="local-video" autoplay muted title="Votre vidéo locale"></video>
-            <video id="remote-video" autoplay title="Vidéo distante"></video>
+            <video id="local-video" autoplay muted title="Votre vidéo locale" aria-label="Vidéo locale"></video>
+            <video id="remote-video" autoplay title="Vidéo distante" aria-label="Vidéo distante"></video>
         </div>
     </div>
 
-    <!-- 🔹 Inclusion des bibliothèques -->
-    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.3.2/dist/socket.io.min.js" async></script>
-    <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js" async></script>
-    <script src="/script.js" async></script>
+    <!-- Inclusion des bibliothèques -->
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.3.2/dist/socket.io.min.js" defer></script>
+    <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js" defer></script>
+    <script src="/script.js" defer></script>
 </body>
 </html>

@@ -1,56 +1,87 @@
+/* 🔹 Définition de variables pour les couleurs */
+:root {
+    --primary-color: #007bff;
+    --hover-color: #0056b3;
+    --background-light: #f4f4f4;
+    --text-color: #333;
+}
+
+/* 🔹 Styles généraux */
 body {
     font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    background-color: var(--background-light);
     text-align: center;
     margin: 0;
     padding: 0;
+    color: var(--text-color);
 }
 
+/* 🔹 Conteneur principal */
 .chat-container {
     width: 80%;
     max-width: 600px;
     margin: auto;
     padding: 20px;
     background: white;
-    box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px; /* ✅ Coins arrondis */
 }
 
+/* 🔹 En-tête */
 header h1 {
     margin: 0;
     padding: 10px;
-    background: #007bff;
+    background: var(--primary-color);
     color: white;
+    border-radius: 10px 10px 0 0; /* ✅ Arrondi seulement en haut */
 }
 
+/* 🔹 Zones de messages et appels */
 .message-controls, .call-controls {
     display: flex;
     justify-content: center;
     gap: 10px;
     padding: 10px;
+    flex-wrap: wrap;
 }
 
+/* 🔹 Boutons */
 button {
-    background-color: #007bff;
+    background-color: var(--primary-color);
     border: none;
     color: white;
-    padding: 10px;
+    padding: 10px 15px;
     font-size: 16px;
     cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease; /* ✅ Animation fluide */
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: var(--hover-color);
+}
+
+/* 🔹 Zone de discussion */
+.chat-box {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px; /* ✅ Coins arrondis */
+    background: #fff;
+}
+
+/* 🔹 Vidéos */
+.video-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
 }
 
 video {
     width: 100%;
     max-width: 300px;
-    margin-top: 10px;
-    border: 2px solid #007bff;
-}
-.chat-box {
-    max-height: 300px; /* Définit une hauteur maximale pour la boîte de messages */
-    overflow-y: auto; /* Permet le défilement vertical */
-    border: 1px solid #ddd;
-    padding: 10px;
+    border: 2px solid var(--primary-color);
+    border-radius: 5px; /* ✅ Coins arrondis */
 }
