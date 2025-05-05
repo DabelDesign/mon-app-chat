@@ -1,7 +1,23 @@
+import Peer from "peerjs";
+import io from "socket.io-client";
+
+// 🔹 Initialisation de Socket.IO
 const socket = io("https://mon-app-chat-production.up.railway.app/");
 
 socket.on("connect", () => console.log("✅ Connecté à Socket.IO"));
 
+socket.on("connect_error", (err) => console.error("❌ Erreur de connexion à Socket.IO :", err));
+
+// 🔹 Vérification des éléments vidéo
+const remoteVideo = document.getElementById("remote-video");
+const localVideo = document.getElementById("local-video");
+const userList = document.getElementById("user-list");
+
+if (!remoteVideo || !localVideo || !userList) {
+    throw new Error("❌ Certains éléments vidéo ou la liste des utilisateurs ne sont pas disponibles !");
+}
+
+// 🔹 Initialisation de PeerJS avec un serveur TURN
 const peer = new Peer({
     config: {
         iceServers: [
@@ -23,16 +39,15 @@ let activeCall = null;
 // 🔹 Mise à jour de la liste des utilisateurs
 socket.on("user-list", (users) => {
     console.log("🔄 Mise à jour de la liste des utilisateurs :", users);
-
-    const userList = document.getElementById("user-list");
     userList.innerHTML = "";
-    userList.disabled = false;
 
     if (!users || Object.keys(users).length === 0) {
         console.warn("⚠️ Aucun utilisateur connecté !");
+        userList.disabled = true;
         return;
     }
 
+    userList.disabled = false;
     Object.entries(users).forEach(([id, username]) => {
         const option = document.createElement("option");
         option.value = id;
@@ -43,11 +58,13 @@ socket.on("user-list", (users) => {
     console.log("🟢 Liste des utilisateurs mise à jour :", users);
 });
 
-// 🔹 Fonction pour démarrer un appel
-peer.on("call", (call) => {
-    console.log("📞 Appel entrant détecté !");
+// 🔹 Activation dynamique des boutons d’appel
+userList.addEventListener("change", (event) => {
+    const callButtons = document.querySelectorAll("#video-call, #voice-call");
+    callButtons.forEach((btn) => btn.disabled = !event.target.value);
 });
 
+// 🔹 Fonction pour démarrer un appel
 function startCall(remoteId, options) {
     if (!remoteId) {
         console.error("❌ Aucun ID PeerJS pour l’appel !");
@@ -56,11 +73,11 @@ function startCall(remoteId, options) {
 
     navigator.mediaDevices.getUserMedia(options)
         .then((stream) => {
-            document.getElementById("local-video").srcObject = stream;
-            activeCall = peer.call(remoteId, stream);
+            localVideo.srcObject = stream;
+            activeCall = peer.call(remoteId, stream, { metadata: { video: options.video } });
 
             activeCall.on("stream", (remoteStream) => {
-                document.getElementById("remote-video").srcObject = remoteStream;
+                remoteVideo.srcObject = remoteStream;
                 document.getElementById("end-call").style.display = "block";
             });
 
@@ -74,6 +91,45 @@ function startCall(remoteId, options) {
         .catch((err) => console.error("❌ Erreur d’accès aux médias :", err));
 }
 
+// 🔹 Gestion des appels entrants
+peer.on("call", (call) => {
+    console.log("📞 Appel entrant détecté !");
+    navigator.mediaDevices.getUserMedia(call.metadata.video ? { video: true, audio: true } : { audio: true })
+        .then((stream) => {
+            call.answer(stream);
+            localVideo.srcObject = stream;
+
+            call.on("stream", (remoteStream) => {
+                remoteVideo.srcObject = remoteStream;
+            });
+
+            call.on("close", () => {
+                console.log("🔴 L'appel entrant a été terminé !");
+                endCall();
+            });
+        })
+        .catch((err) => console.error("❌ Erreur d’accès aux médias :", err));
+});
+
+// 🔹 Boutons d’appel
+document.getElementById("video-call").addEventListener("click", () => {
+    const recipient = userList.value;
+    if (!recipient) {
+        alert("❌ Sélectionne un utilisateur avant l’appel !");
+        return;
+    }
+    startCall(recipient, { video: true, audio: true });
+});
+
+document.getElementById("voice-call").addEventListener("click", () => {
+    const recipient = userList.value;
+    if (!recipient) {
+        alert("❌ Sélectionne un utilisateur avant l’appel !");
+        return;
+    }
+    startCall(recipient, { audio: true });
+});
+
 // 🔹 Raccrochage des appels
 function endCall() {
     if (activeCall) {
@@ -83,9 +139,9 @@ function endCall() {
 
     peer.disconnect();
     console.log("🔴 Déconnexion de PeerJS !");
-    
-    document.getElementById("local-video").srcObject = null;
-    document.getElementById("remote-video").srcObject = null;
+
+    localVideo.srcObject = null;
+    remoteVideo.srcObject = null;
     document.getElementById("end-call").style.display = "none";
 
     socket.emit("end-call");

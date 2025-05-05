@@ -1,22 +1,33 @@
+require("dotenv").config();
 const express = require("express");
 const http = require("http");
 const socketIO = require("socket.io");
-const { PeerServer } = require("peer");
+const { ExpressPeerServer } = require("peer");
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
 // 🔹 Initialisation du serveur PeerJS
-const peerServer = PeerServer({ port: 9000, path: "/peerjs" });
+const peerServer = ExpressPeerServer(server, {
+    debug: true,
+    path: "/peerjs"
+});
+
+app.use("/peerjs", peerServer);
+
 peerServer.on("connection", (client) => {
-    console.log(`🟢 Peer connecté : ${client.id}`);
+    console.log(`🟢 Peer connecté : ${client.getId()}`);
+});
+
+peerServer.on("error", (err) => {
+    console.error("❌ Erreur PeerJS :", err);
 });
 
 // 🔹 Stockage des utilisateurs et PeerJS IDs
 const users = {};
 const peers = {};
-const activeCalls = {}; // 🔹 Suivi des appels en cours
+const activeCalls = {};
 
 app.use(express.static("public"));
 
@@ -31,12 +42,20 @@ io.on("connection", (socket) => {
     console.log(`🔗 Utilisateur connecté : ${socket.id}`);
 
     socket.on("set-username", (username) => {
+        if (!username || typeof username !== "string") {
+            console.warn("⚠️ Username invalide !");
+            return;
+        }
         users[socket.id] = username;
         console.log(`✅ Pseudo enregistré : ${username}`);
         io.emit("user-list", users);
     });
 
     socket.on("peer-id", (peerId) => {
+        if (!peerId) {
+            console.warn("⚠️ ID PeerJS invalide !");
+            return;
+        }
         peers[socket.id] = peerId;
         console.log(`🔗 ID PeerJS enregistré : ${peerId}`);
     });
@@ -46,13 +65,11 @@ io.on("connection", (socket) => {
         delete users[socket.id];
         delete peers[socket.id];
         delete activeCalls[socket.id];
-
         io.emit("user-list", users);
     });
 
-    // 🔹 Gestion des appels privés
     socket.on("start-private-call", ({ to }) => {
-        const recipientSocket = Object.keys(peers).find(key => users[key] === to);
+        const recipientSocket = Object.keys(peers).find((key) => users[key] === to);
         const peerId = peers[socket.id];
 
         if (!recipientSocket || !peerId) {
@@ -66,10 +83,9 @@ io.on("connection", (socket) => {
         io.to(recipientSocket).emit("incoming-call", peerId);
     });
 
-    // 🔹 Gestion du raccrochage des appels
     socket.on("end-call", () => {
         const recipientSocket = activeCalls[socket.id];
-        if (!recipientSocket) {
+        if (!recipientSocket || !activeCalls[recipientSocket]) {
             console.warn("❌ Aucun appel en cours à terminer !");
             return;
         }
