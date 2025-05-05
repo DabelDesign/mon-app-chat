@@ -23,7 +23,27 @@ let activeCall = null;
 // 🔹 Mise à jour de la liste des utilisateurs
 socket.on("user-list", (users) => {
     console.log("🔄 Utilisateurs reçus :", users);
-
+    socket.on("user-list", (users) => {
+        console.log("🔄 Utilisateurs reçus :", users);
+    
+        if (Object.keys(users).length === 0) {
+            console.warn("⚠️ Aucun utilisateur connecté !");
+            return;
+        }
+    
+        const userList = document.getElementById("user-list");
+        userList.innerHTML = "";
+    
+        Object.entries(users).forEach(([id, username]) => {
+            const option = document.createElement("option");
+            option.value = id;
+            option.textContent = username;
+            userList.appendChild(option);
+        });
+    
+        console.log("🟢 Liste des utilisateurs mise à jour :", users);
+    });
+    
     const userList = document.getElementById("user-list");
     userList.innerHTML = ""; // 🔄 Vide la liste avant de la mettre à jour
     userList.disabled = false; // ✅ Active la sélection des utilisateurs
@@ -39,6 +59,10 @@ socket.on("user-list", (users) => {
 });
 
 // 🔹 Fonction pour démarrer un appel
+peer.on("call", (call) => {
+    console.log("📞 Appel entrant détecté !");
+});
+
 function startCall(remoteId, options) {
     if (!remoteId) {
         console.error("❌ Aucun ID PeerJS pour l’appel !");

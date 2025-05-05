@@ -53,6 +53,13 @@ io.on("connection", (socket) => {
     });
 
     // 🔹 Gestion des appels privés
+    socket.on("set-username", (username) => {
+        users[socket.id] = username;
+        console.log(`✅ Pseudo enregistré : ${username}`);
+        io.emit("user-list", users);
+        console.log("🟢 Liste des utilisateurs envoyée au client :", users);
+    });
+    
     socket.on("start-private-call", ({ to }) => {
         const recipientSocket = Object.keys(users).find(key => users[key] === to);
         const peerId = peers[socket.id];
