@@ -6,7 +6,7 @@
     "scripts": {
         "start": "node server.js",
         "dev": "nodemon server.js",
-        "clean": "rm -rf node_modules && rm package-lock.json && npm install",
+        "clean": "rimraf node_modules && rimraf package-lock.json && npm install",
         "lint": "eslint .",
         "prestart": "npm run lint"
     },
@@ -30,5 +30,8 @@
         "eslint": "^9.26.0",
         "globals": "^16.0.0",
         "nodemon": "^3.1.10"
+    },
+    "engines": {
+        "node": ">=18.0.0"
     }
 }

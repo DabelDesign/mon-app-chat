@@ -1,0 +1,11 @@
+{
+    "env": {
+        "browser": true,
+        "node": true
+    },
+    "globals": {
+        "define": "readonly",
+        "process": "readonly"
+    },
+    "ignorePatterns": ["public/socket.io.min.js"]
+}

@@ -1,6 +1,5 @@
-import Peer from "peerjs";
-import io from "socket.io-client";
-
+const Peer = require("peerjs");  // ✅ Correction pour CommonJS
+const io = require("socket.io-client");  // ✅ Correction pour CommonJS
 // 🔹 Initialisation de Socket.IO
 const socket = io("https://mon-app-chat-production.up.railway.app/");
 

@@ -1,5 +1,4 @@
-import io from "socket.io-client";
-
+const io = require("socket.io-client");  // ✅ Correction pour CommonJS
 const socket = io("https://mon-app-chat-production.up.railway.app/");
 
 document.addEventListener("DOMContentLoaded", () => {
