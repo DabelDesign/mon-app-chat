@@ -3,7 +3,7 @@ const express = require("express");
 const http = require("http");
 const socketIO = require("socket.io");
 const { ExpressPeerServer } = require("peer");
-const helmet = require("helmet"); // Ajout de la sécurisation des en-têtes HTTP
+const helmet = require("helmet"); // Sécurité HTTP
 
 const app = express();
 const server = http.createServer(app);
@@ -74,37 +74,43 @@ io.on("connection", (socket) => {
     });
 
     socket.on("start-private-call", ({ to }) => {
-        const recipientSocket = Object.keys(peers).find((key) => users[key] === to);
-        const peerId = peers[socket.id];
+        try {
+            const recipientSocket = Object.keys(peers).find((key) => users[key] === to);
+            const peerId = peers[socket.id];
 
-        if (!recipientSocket || !peerId || !users[recipientSocket]) {
-            console.error(`❌ Impossible de démarrer l'appel : utilisateur introuvable (${to})`);
-            socket.emit("call-error", "L'utilisateur n'est pas disponible");
-            return;
+            if (!recipientSocket || !peerId || !users[recipientSocket]) {
+                throw new Error(`Utilisateur introuvable (${to})`);
+            }
+
+            activeCalls[socket.id] = recipientSocket;
+            activeCalls[recipientSocket] = socket.id;
+
+            io.to(recipientSocket).emit("incoming-call", peerId);
+        } catch (err) {
+            console.error(`❌ Impossible de démarrer l'appel : ${err.message}`);
+            socket.emit("call-error", err.message);
         }
-
-        activeCalls[socket.id] = recipientSocket;
-        activeCalls[recipientSocket] = socket.id;
-
-        io.to(recipientSocket).emit("incoming-call", peerId);
     });
 
     socket.on("end-call", () => {
-        const recipientSocket = activeCalls[socket.id];
-        if (!recipientSocket || !activeCalls[recipientSocket]) {
-            console.warn("❌ Aucun appel en cours à terminer !");
-            return;
+        try {
+            const recipientSocket = activeCalls[socket.id];
+            if (!recipientSocket || !activeCalls[recipientSocket]) {
+                throw new Error("Aucun appel en cours à terminer !");
+            }
+
+            console.log(`🔴 Fin d’appel entre ${socket.id} et ${recipientSocket}`);
+
+            io.to(recipientSocket).emit("call-ended");
+            io.to(socket.id).emit("call-ended");
+
+            delete activeCalls[socket.id];
+            delete activeCalls[recipientSocket];
+
+            console.log("✅ Appel terminé avec succès !");
+        } catch (err) {
+            console.warn(`❌ Erreur de fin d’appel : ${err.message}`);
         }
-
-        console.log(`🔴 Fin d’appel entre ${socket.id} et ${recipientSocket}`);
-
-        io.to(recipientSocket).emit("call-ended");
-        io.to(socket.id).emit("call-ended");
-
-        delete activeCalls[socket.id];
-        delete activeCalls[recipientSocket];
-
-        console.log("✅ Appel terminé avec succès !");
     });
 });
 
