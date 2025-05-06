@@ -4,7 +4,15 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- 🔹 Sécurisation du contenu -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://unpkg.com;">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
+
+    <!-- 🔹 Ajout du manifest pour PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+
     <title>Mon App Chat</title>
     <link rel="stylesheet" href="/style.css">
 </head>
@@ -46,16 +54,16 @@
             <button id="end-call" hidden title="Terminer l’appel" aria-label="Terminer l’appel">🔴 Terminer Appel</button>
         </div>
 
-        <!-- Vidéos -->
+        <!-- Vidéos avec contrôles -->
         <div class="video-container">
-            <video id="local-video" autoplay muted title="Votre vidéo locale" aria-label="Vidéo locale"></video>
-            <video id="remote-video" autoplay title="Vidéo distante" aria-label="Vidéo distante"></video>
+            <video id="local-video" autoplay muted controls title="Votre vidéo locale"></video>
+            <video id="remote-video" autoplay controls title="Vidéo distante"></video>
         </div>
     </div>
 
-    <!-- Inclusion des bibliothèques -->
-    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.3.2/dist/socket.io.min.js" defer></script>
-    <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js" defer></script>
-    <script src="/script.js" defer></script>
+    <!-- 🔹 Inclusion des bibliothèques optimisées -->
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.3.2/dist/socket.io.min.js" async></script>
+    <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js" async></script>
+    <script src="/script.js" async></script>
 </body>
 </html>

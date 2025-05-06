@@ -3,17 +3,20 @@ const express = require("express");
 const http = require("http");
 const socketIO = require("socket.io");
 const { ExpressPeerServer } = require("peer");
+const helmet = require("helmet"); // Ajout de la sécurisation des en-têtes HTTP
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
+
+// 🔹 Sécurisation HTTP
+app.use(helmet());
 
 // 🔹 Initialisation du serveur PeerJS
 const peerServer = ExpressPeerServer(server, {
     debug: true,
     path: "/peerjs"
 });
-
 app.use("/peerjs", peerServer);
 
 peerServer.on("connection", (client) => {
@@ -22,6 +25,7 @@ peerServer.on("connection", (client) => {
 
 peerServer.on("error", (err) => {
     console.error("❌ Erreur PeerJS :", err);
+    io.emit("peer-error", err.message); // Envoi des erreurs aux clients
 });
 
 // 🔹 Stockage des utilisateurs et PeerJS IDs
@@ -31,6 +35,7 @@ const activeCalls = {};
 
 app.use(express.static("public"));
 
+// 🔹 Sécurisation et optimisation des en-têtes HTTP
 app.use((req, res, next) => {
     res.setHeader("Cache-Control", "public, max-age=31536000");
     res.setHeader("X-Content-Type-Options", "nosniff");
@@ -72,8 +77,9 @@ io.on("connection", (socket) => {
         const recipientSocket = Object.keys(peers).find((key) => users[key] === to);
         const peerId = peers[socket.id];
 
-        if (!recipientSocket || !peerId) {
-            console.error(`❌ Impossible de démarrer l'appel : utilisateur ou PeerJS ID introuvable (${to})`);
+        if (!recipientSocket || !peerId || !users[recipientSocket]) {
+            console.error(`❌ Impossible de démarrer l'appel : utilisateur introuvable (${to})`);
+            socket.emit("call-error", "L'utilisateur n'est pas disponible");
             return;
         }
 
@@ -102,7 +108,12 @@ io.on("connection", (socket) => {
     });
 });
 
+// 🔹 Vérification du fichier .env et de la variable PORT
 const PORT = process.env.PORT || 3000;
+if (!process.env.PORT) {
+    console.warn("⚠️ PORT non défini dans .env, utilisation du port par défaut 3000");
+}
+
 server.listen(PORT, () => {
     console.log(`🚀 Serveur démarré sur le port ${PORT}`);
 });

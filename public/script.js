@@ -5,10 +5,12 @@ import io from "socket.io-client";
 const socket = io("https://mon-app-chat-production.up.railway.app/");
 
 socket.on("connect", () => console.log("✅ Connecté à Socket.IO"));
+socket.on("connect_error", (err) => {
+    console.error("❌ Erreur de connexion à Socket.IO :", err);
+    alert("❌ Impossible de se connecter au serveur !");
+});
 
-socket.on("connect_error", (err) => console.error("❌ Erreur de connexion à Socket.IO :", err));
-
-// 🔹 Vérification des éléments vidéo
+// 🔹 Vérification des éléments HTML
 const remoteVideo = document.getElementById("remote-video");
 const localVideo = document.getElementById("local-video");
 const userList = document.getElementById("user-list");
@@ -17,12 +19,12 @@ if (!remoteVideo || !localVideo || !userList) {
     throw new Error("❌ Certains éléments vidéo ou la liste des utilisateurs ne sont pas disponibles !");
 }
 
-// 🔹 Initialisation de PeerJS avec un serveur TURN
+// 🔹 Initialisation de PeerJS avec serveur TURN sécurisé
 const peer = new Peer({
     config: {
         iceServers: [
             { urls: "stun:stun.l.google.com:19302" },
-            { urls: "turn:numb.viagenie.ca", username: "webrtc@live.com", credential: "muazkh" }
+            { urls: "turn:your-secure-turn-server.com", username: "your-username", credential: "your-password" }
         ]
     }
 });
@@ -32,7 +34,10 @@ peer.on("open", (id) => {
     socket.emit("peer-id", id);
 });
 
-peer.on("error", (err) => console.error("❌ Erreur PeerJS :", err));
+peer.on("error", (err) => {
+    console.error("❌ Erreur PeerJS :", err);
+    alert(`Erreur PeerJS : ${err.message}`);
+});
 
 let activeCall = null;
 
@@ -66,8 +71,13 @@ userList.addEventListener("change", (event) => {
 
 // 🔹 Fonction pour démarrer un appel
 function startCall(remoteId, options) {
-    if (!remoteId) {
-        console.error("❌ Aucun ID PeerJS pour l’appel !");
+    if (activeCall) {
+        console.warn("⚠️ Un appel est déjà en cours !");
+        return;
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert("❌ WebRTC non supporté par votre navigateur !");
         return;
     }
 
@@ -78,7 +88,7 @@ function startCall(remoteId, options) {
 
             activeCall.on("stream", (remoteStream) => {
                 remoteVideo.srcObject = remoteStream;
-                document.getElementById("end-call").style.display = "block";
+                toggleCallButtons(true);
             });
 
             activeCall.on("close", () => {
@@ -111,6 +121,13 @@ peer.on("call", (call) => {
         .catch((err) => console.error("❌ Erreur d’accès aux médias :", err));
 });
 
+// 🔹 Gestion dynamique des boutons
+function toggleCallButtons(state) {
+    document.getElementById("video-call").disabled = state;
+    document.getElementById("voice-call").disabled = state;
+    document.getElementById("end-call").style.display = state ? "block" : "none";
+}
+
 // 🔹 Boutons d’appel
 document.getElementById("video-call").addEventListener("click", () => {
     const recipient = userList.value;
@@ -142,7 +159,7 @@ function endCall() {
 
     localVideo.srcObject = null;
     remoteVideo.srcObject = null;
-    document.getElementById("end-call").style.display = "none";
+    toggleCallButtons(false);
 
     socket.emit("end-call");
 }
